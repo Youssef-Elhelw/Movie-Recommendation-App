@@ -85,4 +85,4 @@ def recommend():
     results = recommend_movies(title, similarity, df, top_n=10)
     return jsonify(results)
 
-app.run(port=5000, debug=True)
+app.run(host="0.0.0.0", port=5000, debug=True)
