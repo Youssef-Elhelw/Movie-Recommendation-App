@@ -27,22 +27,22 @@ export default function HomePage() {
       poster: 'https://image.tmdb.org/t/p/original/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg'
     },
     {
-      id: 3,
-      title: 'The Matrix',
-      year: 1999,
-      genre: 'Sci-Fi, Action',
-      description: 'When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth -- the life he knows is a mere simulation.',
-      image: 'https://image.tmdb.org/t/p/original/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-      poster: 'https://image.tmdb.org/t/p/original/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg'
+      id: 9,
+      title: 'escape room',
+      year: 2019,
+      genre: 'Thriller, Mystery',
+      description: 'Six strangers find themselves in circumstances beyond their control, and must use their wits to survive.',
+      image: 'https://image.tmdb.org/t/p/original/8Ls1tZ6qjGzfGHjBB7ihOnf7f0b.jpg',
+      poster: 'https://image.tmdb.org/t/p/original/8Ls1tZ6qjGzfGHjBB7ihOnf7f0b.jpg'
     },
     {
-      id: 4,
-      title: 'The Matrix',
-      year: 1999,
-      genre: 'Sci-Fi, Action',
-      description: 'When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth -- the life he knows is a mere simulation.',
-      image: 'https://image.tmdb.org/t/p/original/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-      poster: 'https://image.tmdb.org/t/p/original/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg'
+      id: 10,
+      title: 'arrival',
+      year: 2016,
+      genre: 'Sci-Fi, Drama',
+      description: 'A linguist works with the military to communicate with alien lifeforms after twelve mysterious spacecraft appear around the world.',
+      image: 'https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg',
+      poster: 'https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg'
     }
   ])
 
@@ -60,8 +60,8 @@ export default function HomePage() {
       title: 'Shutter Island',
       year: 2010,
       genre: 'Mystery, Thriller',
-      image: 'https://image.tmdb.org/t/p/original/9yBVqNruk6Ykrwc32qrK2TIE5xw.jpg',
-      poster: 'https://image.tmdb.org/t/p/original/9yBVqNruk6Ykrwc32qrK2TIE5xw.jpg'
+      image: 'https://image.tmdb.org/t/p/original/kve20tXwUZpu4GUX8l6X7Z4jmL6.jpg',
+      poster: 'https://image.tmdb.org/t/p/original/kve20tXwUZpu4GUX8l6X7Z4jmL6.jpg'
     },
     {
       id: 5,
@@ -110,7 +110,7 @@ export default function HomePage() {
       <section className="featured-section">
         <div className="container">
             <h2 className="section-title">Selected Moive</h2>
-          <div className="featured-grid">
+          <div className="featured-movie">
 
             {featuredMovies.map(movie => (
               <MovieCard key={movie.id} movie={movie} featured />

@@ -23,7 +23,7 @@ export default function MovieCard({ movie, featured = false, compact = false }) 
             <img src={movie.image} alt={movie.title} />
           </div>
           <div className="movie-info-featured">
-            <p className="movie-meta">{movie.release_date.slice(0,4)} • {movie.genre}</p>
+            <p className="movie-meta">{movie?.release_date?.slice(0,4)} • {movie.genre}</p>
             <h2 className="movie-title-featured">{movie.title}</h2>
             <p className="movie-description">{movie.description}</p>
             {/* <button className="btn-view-details">View Details</button> */}
@@ -36,10 +36,10 @@ export default function MovieCard({ movie, featured = false, compact = false }) 
   return (
     <div className="movie-card">
       <div className="movie-poster">
-        <img src={movie.image} alt={movie.title} />
+        <img src={movie.image || movie.poster} alt={movie.title} />
       </div>
       <div className="movie-info">
-        <p className="movie-meta">{movie.year} • {movie.genre}</p>
+        <p className="movie-meta">{movie.year || movie?.release_date?.slice(0,4)} • {movie.genre}</p>
         <h3 className="movie-title">{movie.title}</h3>
         <p className="movie-description">{movie.description}</p>
         {/* <button className="btn-view-details">View Details</button> */}
