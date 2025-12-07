@@ -1,0 +1,66 @@
+.home-page {
+    background-color: #0f1419;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.featured-section {
+    padding: 3rem 0;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.recommendations-section {
+    padding: 3rem 0;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.suggested-section {
+    padding: 3rem 0;
+}
+
+.movies-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.movies-scroll::-webkit-scrollbar {
+    height: 0.5rem;
+}
+
+.movies-scroll::-webkit-scrollbar-track {
+    background: #1a1f28;
+    border-radius: 0.25rem;
+}
+
+.movies-scroll::-webkit-scrollbar-thumb {
+    background: #0066ff;
+    border-radius: 0.25rem;
+}
+
+.movies-scroll::-webkit-scrollbar-thumb:hover {
+    background: #0052cc;
+}

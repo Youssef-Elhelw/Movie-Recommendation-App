@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+# from numba import njit
 import pandas as pd
 import numpy as np
 import re
@@ -9,17 +10,24 @@ df = pd.read_csv("data/mymoviedb.csv", engine="python")
 similarity = np.load("data/similarity.npy")
 
 app = Flask(__name__)
+# enable CORS if needed
+from flask_cors import CORS
+CORS(app)
 
 def normalize(text):
-    print(f"Normalizing text: {text}")
+    # reomving & and replacing it with and
+    text = text.replace('&', 'and')
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
+df["norm_title"] = df["Title"].apply(normalize)
+
+# @njit
 def similarity_score(a, b):
     score = 0
     for i in range(len(a)):
         for j in range(i+1, len(a)+1):
             sub = a[i:j]
-            if re.search(sub, b):
+            if sub in b:  # Numba will optimize this
                 score += len(sub)
     return score
 
@@ -27,8 +35,15 @@ def possible_titles(movie_name, data=df):
     norm_name = normalize(movie_name)
     scores = []
 
-    for title, release_date in zip(data["Title"], data["Release_Date"]):
-        norm_title = normalize(title)
+    titles = df["Title"].tolist()
+    norm_titles = df["norm_title"].tolist()
+    release_dates = df["Release_Date"].tolist()
+    images = df["Poster_Url"].tolist()
+    genres = df["Genre"].tolist()
+    descriptions = df["Overview"].tolist()
+
+    for title,norm_title, release_date, image, genre, description in (zip(titles, norm_titles, release_dates, images, genres, descriptions)):
+        # norm_title = normalize(title)
         if not norm_title:
             continue
 
@@ -37,16 +52,15 @@ def possible_titles(movie_name, data=df):
         if score < len(norm_name) * 0.4:
             continue
 
-        scores.append((title, score, release_date))
-
+        scores.append((title, score, release_date, image, genre, description))
     scores.sort(key=lambda x: (x[1], -len(x[0])), reverse=True)
 
     top_matches = scores[:10]
 
     # return ONLY list of dicts
     return [
-        {"title": t, "score": s, "release_date": d}
-        for (t, s, d) in top_matches
+        {"title": t, "score": s, "release_date": d, "poster_url": image, "genre": genre, "description": description}
+        for (t, s, d, image, genre, description) in top_matches
     ]
 
 def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
@@ -63,7 +77,22 @@ def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
 
     movie_idxs = [i[0] for i in scores]
 
-    return data["Title"].iloc[movie_idxs].tolist()
+    # Return all movie info as dictionaries
+    recommendations = []
+    for movie_idx in movie_idxs:
+        movie_row = data.iloc[movie_idx]
+        recommendations.append({
+            "index": int(movie_idx),
+            "title": movie_row["Title"],
+            "release_date": movie_row["Release_Date"],
+            "genres": movie_row.get("Genre", ""),
+            "overview": movie_row.get("Overview", ""),
+            "poster_url": movie_row.get("Poster_Url", ""),
+            "rating": float(movie_row.get("Vote_Average", 0)) if pd.notna(movie_row.get("Vote_Average")) else None,
+            # Add any other columns from your CSV
+        })
+    
+    return recommendations
 
 
 @app.get("/")
@@ -74,8 +103,8 @@ def home():
 @app.get("/search")
 def search():
     q = request.args.get("q", "")
-    print('sdfisjfojdsopfjodijfoijdfjdoifjidjfidjfidjfidjfidjfijfjdijfdijidjidjf')
-    print(type(q))
+    # print('sdfisjfojdsopfjodijfoijdfjdoifjidjfidjfidjfidjfidjfijfjdijfdijidjidjf')
+    # print(type(q))
     results = possible_titles(q, df)
     return jsonify(results)
 

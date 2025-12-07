@@ -1,0 +1,101 @@
+.hero-section {
+    /* background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23111" width="1200" height="600"/><circle cx="200" cy="100" r="100" fill="%23222" opacity="0.5"/><circle cx="900" cy="400" r="150" fill="%23333" opacity="0.3"/></svg>'); */
+    background-size: cover;
+    background-position: center;
+    padding: 6rem 2rem;
+    text-align: center;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url('../assets/cover.png');
+    background-size: contain;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    color: #b0b8c1;
+    margin-bottom: 2rem;
+}
+
+.search-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: rgb(30 41 59 / 37%);
+    border: 2px solid #5b7094;
+    border-radius: 0.375rem;
+    padding: 0 1rem;
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.search-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 0;
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: #c7cfd8;
+    font-weight: bold;
+}
+
+.btn-get-recommendation {
+    background-color: #001a8f99;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+}
+
+.btn-get-recommendation:hover {
+    background-color: #0052cc;
+}
+
+.search-container-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 2rem auto 0;
+}
+
+.search-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
