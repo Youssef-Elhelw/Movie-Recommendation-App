@@ -35,12 +35,12 @@ def possible_titles(movie_name, data=df):
     norm_name = normalize(movie_name)
     scores = []
 
-    titles = df["title"].tolist()
-    norm_titles = df["norm_title"].tolist()
-    release_dates = df["release_date"].tolist()
-    images = df["poster_path"].tolist()
-    genres = df["genres"].tolist()
-    descriptions = df["overview"].tolist()
+    titles = data["title"].tolist()
+    norm_titles = data["norm_title"].tolist()
+    release_dates = data["release_date"].tolist()
+    images = data["poster_path"].tolist()
+    genres = data["genres"].tolist()
+    descriptions = data["overview"].tolist()
 
     for title,norm_title, release_date, image, genre, description in (zip(titles, norm_titles, release_dates, images, genres, descriptions)):
         # norm_title = normalize(title)
