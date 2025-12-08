@@ -13,7 +13,7 @@
 
 .movie-poster {
     width: 100%;
-    height: 250px;
+    height: 300px;
     background-color: #0a0e13;
     overflow: hidden;
 }
@@ -21,7 +21,7 @@
 .movie-poster img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .movie-info {
@@ -40,6 +40,7 @@
     color: #ffffff;
     margin-bottom: 0.75rem;
     line-height: 1.3;
+    text-transform: capitalize;
 }
 
 .movie-description {
@@ -47,8 +48,6 @@
     color: #b0b8c1;
     margin-bottom: 1rem;
     line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -73,26 +72,28 @@
 .movie-card.featured {
     background-color: transparent;
     border: none;
+    width: 100%;
 }
 
 .movie-featured-content {
     display: flex;
     gap: 2rem;
     align-items: center;
+    width: 100%;
 }
 
 .movie-poster-featured {
-    flex: 0 0 300px;
-    height: 400px;
+    max-height: 450px;
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    flex: 0 0 300px;
 }
 
 .movie-poster-featured img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .movie-info-featured {
@@ -148,4 +149,287 @@
 .movie-genre-compact {
     font-size: 0.8rem;
     color: #7a8a9a;
+}
+
+/* ============================================
+   TABLET RESPONSIVE (768px and below)
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Regular Cards */
+    .movie-poster {
+        height: 220px;
+    }
+
+    .movie-info {
+        padding: 1rem;
+    }
+
+    .movie-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .movie-meta {
+        font-size: 0.8rem;
+    }
+
+    .movie-description {
+        font-size: 0.85rem;
+        -webkit-line-clamp: 4;
+        display: -webkit-box;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Featured Card - Stack Vertically */
+    .movie-featured-content {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: stretch;
+    }
+
+    .movie-poster-featured {
+        flex: 0 0 auto;
+        height: 350px;
+        width: 100%;
+    }
+
+    .movie-title-featured {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .movie-info-featured {
+        width: 100%;
+    }
+
+    .movie-meta {
+        font-size: 0.8rem;
+    }
+
+    .movie-description {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 4;
+        display: -webkit-box;
+    }
+
+    /* Compact Cards */
+    .movie-card-compact {
+        flex: 0 0 130px;
+    }
+
+    .movie-poster-compact {
+        height: 195px;
+    }
+
+    .movie-title-compact {
+        font-size: 0.9rem;
+    }
+
+    .movie-genre-compact {
+        font-size: 0.75rem;
+    }
+}
+
+/* ============================================
+   SMALL TABLET / LANDSCAPE PHONE (600px and below)
+   ============================================ */
+@media (max-width: 600px) {
+
+    /* Regular Cards */
+    .movie-poster {
+        height: 180px;
+    }
+
+    .movie-info {
+        padding: 0.75rem;
+    }
+
+    .movie-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .movie-meta {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .movie-description {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 4;
+        display: -webkit-box;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Featured Card */
+    .movie-featured-content {
+        gap: 1rem;
+    }
+
+    .movie-poster-featured {
+        height: 280px;
+    }
+
+    .movie-title-featured {
+        font-size: 1.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .movie-description {
+        font-size: 0.85rem;
+    }
+
+    /* Compact Cards */
+    .movie-card-compact {
+        flex: 0 0 110px;
+    }
+
+    .movie-poster-compact {
+        height: 165px;
+    }
+
+    .movie-title-compact {
+        font-size: 0.85rem;
+    }
+
+    .movie-genre-compact {
+        font-size: 0.7rem;
+    }
+}
+
+/* ============================================
+   MOBILE (480px and below)
+   ============================================ */
+@media (max-width: 480px) {
+
+    /* Regular Cards */
+    .movie-poster {
+        height: 150px;
+    }
+
+    .movie-info {
+        padding: 0.75rem;
+    }
+
+    .movie-title {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .movie-meta {
+        font-size: 0.7rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .movie-description {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 4;
+        display: -webkit-box;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .btn-view-details {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Featured Card - Mobile Optimized */
+    .movie-card.featured {
+        background-color: #1a1f28;
+        border: 1px solid #2d3748;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        padding: 0;
+        /* max-width: 320px; */
+    }
+
+    .movie-featured-content {
+        flex-direction: column;
+        gap: 0;
+        align-items: stretch;
+    }
+
+    .movie-poster-featured {
+        flex: 0 0 auto;
+        height: 220px;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .movie-info-featured {
+        width: 100%;
+        padding: 0.75rem;
+    }
+
+    .movie-title-featured {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.1;
+    }
+
+    .movie-meta {
+        font-size: 0.7rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .movie-description {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 4;
+        display: -webkit-box;
+        line-height: 1.3;
+    }
+
+    /* Compact Cards - Extra Small */
+    .movie-card-compact {
+        flex: 0 0 95px;
+    }
+
+    .movie-poster-compact {
+        height: 143px;
+        margin-bottom: 0.5rem;
+    }
+
+    .movie-info-compact {
+        padding: 0.25rem 0;
+    }
+
+    .movie-title-compact {
+        font-size: 0.75rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .movie-genre-compact {
+        font-size: 0.65rem;
+    }
+}
+
+/* ============================================
+   EXTRA SMALL MOBILE (320px and below)
+   ============================================ */
+@media (max-width: 320px) {
+    .movie-poster {
+        height: 120px;
+    }
+
+    .movie-title-featured {
+        font-size: 1.1rem;
+    }
+
+    .movie-card-compact {
+        flex: 0 0 80px;
+    }
+
+    .movie-poster-compact {
+        height: 120px;
+    }
+
+    .movie-title-compact {
+        font-size: 0.7rem;
+    }
+
+    .movie-genre-compact {
+        font-size: 0.6rem;
+    }
 }

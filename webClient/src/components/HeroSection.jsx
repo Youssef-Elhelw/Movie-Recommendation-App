@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import './HeroSection.css'
 import SearchSuggestions from './SearchSuggestions'
 
-export default function HeroSection({ onMovieSelect }) {
+export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchSuggestions, setSearchSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [fetchFlag, setFetchFlag] = useState(true)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -18,7 +19,7 @@ export default function HeroSection({ onMovieSelect }) {
     setLoading(true)
     try {
       const response = await fetch(
-        `http://localhost:5000/search?q=${encodeURIComponent(query)}`
+        `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`
       )
       const data = await response.json()
       setSearchSuggestions(data)
@@ -33,31 +34,43 @@ export default function HeroSection({ onMovieSelect }) {
 
   useEffect(() => {
     if (searchQuery.length >= 2) {
-      fetchSearchResults(searchQuery)
+      if (fetchFlag) {
+        fetchSearchResults(searchQuery)
+      }
     } else {
       setSearchSuggestions([])
       setShowSuggestions(false)
     }
   }, [searchQuery])
 
-  const handleSelectSuggestion = (suggestion) => {
-    setSearchQuery(suggestion.title)
-    setShowSuggestions(false)
-    if (onMovieSelect) {
-      suggestion = {...suggestion, id: Math.random()}; // Assign a random id if not present
-      onMovieSelect(suggestion)
-    }
+  useEffect(()=>{
+    console.log(searchQuery);
+  },[searchQuery])
+
+  const handleSelectSuggestion = async (suggestion) => {
+      setFetchFlag(false)
+      setSearchQuery(suggestion.title);
+      handleGetRecommendation(suggestion.title);
+      console.log(searchQuery);
+      setShowSuggestions(false)
+      if (onMovieSelect) {
+        suggestion = {...suggestion, id: Math.random()}; // Assign a random id if not present
+        onMovieSelect(suggestion)
+      }
+      setTimeout(() => {
+        setFetchFlag(true)
+      }, 500);
   }
 
-  const handleGetRecommendation = () => {
-    if (searchQuery.trim()) {
+  const handleGetRecommendation = async (searchQuery_p) => {    
+    if (searchQuery_p.trim()) {
       // Call the recommend API
-      fetch(`http://localhost:5000/recommend?title=${encodeURIComponent(searchQuery)}`)
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
         .then(response => response.json())
         .then(data => {
           console.log('Recommendations:', data)
-          if (onMovieSelect) {
-            onMovieSelect({ recommendations: data, selectedMovie: searchQuery })
+          if (onGetSuggestion) {
+            onGetSuggestion(data)
           }
         })
         .catch(error => {
@@ -87,7 +100,7 @@ export default function HeroSection({ onMovieSelect }) {
             </div>
             <button
               className="btn-get-recommendation"
-              onClick={handleGetRecommendation}
+              onClick={()=>{handleGetRecommendation(searchQuery)}}
             >
               Get Recommendation
             </button>
