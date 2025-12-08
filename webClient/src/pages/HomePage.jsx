@@ -103,9 +103,25 @@ export default function HomePage() {
     setFeaturedMovies([movie]);
   }
 
+  const onGetSuggestion = (movies) => {
+    console.log('Recommended movies:', movies)
+    const newMovies = movies.map((movie) => ({
+      id: movie.index, // Assign a unique id
+      title: movie.title,
+      year: movie.release_date ? movie.release_date.slice(0,4) : 'N/A',
+      genre: movie.genres,
+      description: movie.overview,
+      image: movie.poster_url,
+      poster: movie.poster_url,
+      rating: movie.rating
+    }));
+    setRecommendedMovies(newMovies?.slice(0,3));
+    setSuggestedMovies(newMovies?.slice(3,));
+    }
+
   return (
     <div className="home-page">
-      <HeroSection onMovieSelect={onMovieSelect} />
+      <HeroSection onMovieSelect={onMovieSelect} onGetSuggestion={onGetSuggestion} />
       
       <section className="featured-section">
         <div className="container">
