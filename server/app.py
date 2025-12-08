@@ -6,8 +6,8 @@ import re
 import os
 # Load data
 print(os.getcwd())
-df = pd.read_csv("data/mymoviedb.csv", engine="python")
-similarity = np.load("data/similarity.npy")
+df = pd.read_csv("data/updated_movies.csv", engine="python")
+similarity = np.load("../Model/server_artifacts/similarity.npy")
 
 app = Flask(__name__)
 # enable CORS if needed
@@ -19,7 +19,7 @@ def normalize(text):
     text = text.replace('&', 'and')
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-df["norm_title"] = df["Title"].apply(normalize)
+df["norm_title"] = df["title"].apply(normalize)
 
 # @njit
 def similarity_score(a, b):
@@ -35,12 +35,12 @@ def possible_titles(movie_name, data=df):
     norm_name = normalize(movie_name)
     scores = []
 
-    titles = df["Title"].tolist()
+    titles = df["title"].tolist()
     norm_titles = df["norm_title"].tolist()
-    release_dates = df["Release_Date"].tolist()
-    images = df["Poster_Url"].tolist()
-    genres = df["Genre"].tolist()
-    descriptions = df["Overview"].tolist()
+    release_dates = df["release_date"].tolist()
+    images = df["poster_path"].tolist()
+    genres = df["genres"].tolist()
+    descriptions = df["overview"].tolist()
 
     for title,norm_title, release_date, image, genre, description in (zip(titles, norm_titles, release_dates, images, genres, descriptions)):
         # norm_title = normalize(title)
@@ -65,7 +65,7 @@ def possible_titles(movie_name, data=df):
 
 def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
     # find exact movie
-    idx_list = data[data["Title"].str.lower() == movie_name.lower()].index
+    idx_list = data[data["title"].str.lower() == movie_name.lower()].index
     if len(idx_list) == 0:
         return []  # not found
     idx = idx_list[0]
@@ -83,12 +83,12 @@ def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
         movie_row = data.iloc[movie_idx]
         recommendations.append({
             "index": int(movie_idx),
-            "title": movie_row["Title"],
-            "release_date": movie_row["Release_Date"],
-            "genres": movie_row.get("Genre", ""),
-            "overview": movie_row.get("Overview", ""),
-            "poster_url": movie_row.get("Poster_Url", ""),
-            "rating": float(movie_row.get("Vote_Average", 0)) if pd.notna(movie_row.get("Vote_Average")) else None,
+            "title": movie_row["title"],
+            "release_date": movie_row["release date"],
+            "genres": movie_row.get("genres", ""),
+            "overview": movie_row.get("overview", ""),
+            "poster_url": movie_row.get("poster_path", ""),
+            "rating": float(movie_row.get("vote_average", 0)) if pd.notna(movie_row.get("vote_average")) else None,
             # Add any other columns from your CSV
         })
     
