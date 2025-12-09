@@ -1,13 +1,18 @@
 from flask import Flask, request, jsonify
-# from numba import njit
+from sklearn.metrics.pairwise import linear_kernel
 import pandas as pd
 import numpy as np
 import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import os
+from scipy.sparse import load_npz
 # Load data
 print(os.getcwd())
 df = pd.read_csv("data/final_movies.csv", engine="python")
-similarity = np.load("data/similarity.npy")
+# similarity = np.load("data/similarity.npy")
+tf_idf_matrix = load_npz("data/tfidf_matrix1.npz")
+
 
 app = Flask(__name__)
 # enable CORS if needed
@@ -19,7 +24,23 @@ def normalize(text):
     text = text.replace('&', 'and')
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
+def create_round2_text(row):
+    overview = str(row["overview"]) if pd.notna(row["overview"]) else ""
+    genres = str(row["genres"]) if pd.notna(row["genres"]) else ""
+    return (overview + " ") * 3 + (genres + " ") * 5
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9\s]', '', text)
+    # remove extra spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
 df["norm_title"] = df["title"].apply(normalize)
+df["stage2_text"] = df.apply(create_round2_text, axis=1)
+df["stage2_text"]=df["stage2_text"].apply(clean_text)
+
 
 # @njit
 def similarity_score(a, b):
@@ -63,36 +84,84 @@ def possible_titles(movie_name, data=df):
         for (t, s, d, image, genre, description) in top_matches
     ]
 
-def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
-    # find exact movie
-    idx_list = data[data["title"].str.lower() == movie_name.lower()].index
-    if len(idx_list) == 0:
-        return []  # not found
-    idx = idx_list[0]
+# def recommend_movies(movie_name, data=df, top_n=5):
+#     # find exact movie
+#     idx_list = data[data["title"].str.lower() == movie_name.lower()].index
+#     if len(idx_list) == 0:
+#         return []  # not found
+#     idx = idx_list[0]
 
-    # similarity row
-    scores = list(enumerate(cosineSimilarity[idx]))
+#     # similarity row
+#     scores = list(enumerate(cosineSimilarity[idx]))
+#     scores = sorted(scores, key=lambda x: x[1], reverse=True)
+#     scores = scores[1:top_n+1]  # skip the same movie
+
+#     movie_idxs = [i[0] for i in scores]
+
+#     # Return all movie info as dictionaries
+#     recommendations = []
+#     for movie_idx in movie_idxs:
+#         movie_row = data.iloc[movie_idx]
+#         recommendations.append({
+#             "index": int(movie_idx),
+#             "title": movie_row["title"],
+#             "release_date": movie_row["release_date"],
+#             "genres": movie_row.get("genres", ""),
+#             "overview": movie_row.get("overview", ""),
+#             "poster_url": movie_row.get("poster_path", ""),
+#             "rating": float(movie_row.get("vote_average", 0)) if pd.notna(movie_row.get("vote_average")) else None,
+#             # Add any other columns from your CSV
+#         })
+    
+#     return recommendations
+
+def recommendation_funtion(movie_name,data=df,top_n=5):
+    idx = data[data["title"].str.lower() == movie_name.lower()].index
+    if len(idx) == 0:
+        print("ERROR: Movie not found.")
+        return None
+    idx = idx[0]
+    
+    # this will compute similarity for this ONE movie (1 x N)
+    sim_scores = linear_kernel(tf_idf_matrix[idx:idx+1], tf_idf_matrix).flatten()
+    # pair each movie with its score
+    scores = list(enumerate(sim_scores))
+    # sort descending by similarity
     scores = sorted(scores, key=lambda x: x[1], reverse=True)
-    scores = scores[1:top_n+1]  # skip the same movie
+    scores = scores[1:top_n+1]
+    # sort based on popularity
+    # scores = sorted(scores, key=lambda x: data.iloc[x[0]]["popularity"], reverse=True)
 
     movie_idxs = [i[0] for i in scores]
 
-    # Return all movie info as dictionaries
-    recommendations = []
-    for movie_idx in movie_idxs:
-        movie_row = data.iloc[movie_idx]
-        recommendations.append({
-            "index": int(movie_idx),
-            "title": movie_row["title"],
-            "release_date": movie_row["release_date"],
-            "genres": movie_row.get("genres", ""),
-            "overview": movie_row.get("overview", ""),
-            "poster_url": movie_row.get("poster_path", ""),
-            "rating": float(movie_row.get("vote_average", 0)) if pd.notna(movie_row.get("vote_average")) else None,
+    # print(f"\nTop {top_n} recommendations for '{movie_name}':")
+    return idx,movie_idxs
+
+def stage2_rerank(main_idx, candidate_indices, df):
+
+    indices = [main_idx] + candidate_indices
+    texts = df.loc[indices, "stage2_text"].tolist()
+    vectorizer = TfidfVectorizer(max_features=2000)
+    mat = vectorizer.fit_transform(texts)
+    sim = cosine_similarity(mat[0:1], mat).flatten()
+    reranked = sorted(list(zip(indices[1:], sim[1:])),key=lambda x: x[1],reverse=True)
+    reranked = [
+        {
+            "index": int(idx),
+            "title": df.iloc[idx]["title"],
+            "release_date": df.iloc[idx]["release_date"],
+            "genres": df.iloc[idx].get("genres", ""),
+            "overview": df.iloc[idx].get("overview", ""),
+            "poster_url": df.iloc[idx].get("poster_path", ""),
+            "rating": float(df.iloc[idx].get("vote_average", 0)) if pd.notna(df.iloc[idx].get("vote_average")) else None,
             # Add any other columns from your CSV
-        })
-    
-    return recommendations
+        }
+        for (idx, score) in reranked
+    ]
+    return reranked
+
+
+
 
 
 @app.get("/")
@@ -111,7 +180,9 @@ def search():
 @app.get("/recommend")
 def recommend():
     title = request.args.get("title", "")
-    results = recommend_movies(title, similarity, df, top_n=10)
-    return jsonify(results)
+    # results = recommend_movies(title, similarity, df, top_n=10)
+    main_idx, candidate_indices = recommendation_funtion(title, df, top_n=10)
+    reranked = stage2_rerank(main_idx, candidate_indices, df)
+    return jsonify(reranked)
 
 app.run(host="0.0.0.0", port=5000, debug=True)
