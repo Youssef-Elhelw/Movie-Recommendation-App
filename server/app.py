@@ -6,8 +6,8 @@ import re
 import os
 # Load data
 print(os.getcwd())
-df = pd.read_csv("data/updated_movies.csv", engine="python")
-similarity = np.load("../Model/server_artifacts/similarity.npy")
+df = pd.read_csv("data/final_movies.csv", engine="python")
+similarity = np.load("data/similarity.npy")
 
 app = Flask(__name__)
 # enable CORS if needed
@@ -84,7 +84,7 @@ def recommend_movies(movie_name, cosineSimilarity, data=df, top_n=5):
         recommendations.append({
             "index": int(movie_idx),
             "title": movie_row["title"],
-            "release_date": movie_row["release date"],
+            "release_date": movie_row["release_date"],
             "genres": movie_row.get("genres", ""),
             "overview": movie_row.get("overview", ""),
             "poster_url": movie_row.get("poster_path", ""),
