@@ -11,7 +11,7 @@ from scipy.sparse import load_npz
 print(os.getcwd())
 df = pd.read_csv("data/final_movies.csv", engine="python")
 # similarity = np.load("data/similarity.npy")
-tf_idf_matrix = load_npz("data/tfidf_matrix.npz")
+tf_idf_matrix = load_npz("data/tfidf_matrix1.npz")
 
 
 app = Flask(__name__)
