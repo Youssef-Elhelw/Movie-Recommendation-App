@@ -43,7 +43,7 @@ class _testReqState extends State<testReq> {
 
   @override
   Widget build(BuildContext context) {
-    return MovieSearchBar();
+    return Center(child: MovieSearchBar());
 
     return Scaffold(
       body: Center(
