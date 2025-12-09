@@ -68,7 +68,12 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
       fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
         .then(response => response.json())
         .then(data => {
-          console.log('Recommendations:', data)
+          // console.log('Recommendations:', data)
+          // log the movies tiltles
+          console.log(searchQuery_p)
+          data.forEach((item, index) => {
+            console.log(`${index + 1}. ${item.title}`)
+          })
           if (onGetSuggestion) {
             onGetSuggestion(data)
           }
