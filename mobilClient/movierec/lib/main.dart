@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movierec/API/mov_reqs.dart';
+import 'package:movierec/components/movie_search_bar.dart';
 import 'package:movierec/model/search_result.dart';
 
 void main() {
@@ -36,12 +37,14 @@ class _testReqState extends State<testReq> {
 
   @override
   void initState() {
-    _future = Requests.fetchSearch("movie");
+    _future = Requests.searchFor("movie");
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    return MovieSearchBar();
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -50,7 +53,7 @@ class _testReqState extends State<testReq> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  _future = Requests.fetchSearch(_controller.text);
+                  _future = Requests.searchFor(_controller.text);
                 });
               },
               child: Text("Request"),
