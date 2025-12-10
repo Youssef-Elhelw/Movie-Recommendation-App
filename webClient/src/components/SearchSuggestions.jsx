@@ -1,6 +1,13 @@
 import './SearchSuggestions.css'
 
-export default function SearchSuggestions({ suggestions, onSelectSuggestion, loading }) {
+export default function SearchSuggestions({ 
+  suggestions, 
+  onSelectSuggestion, 
+  loading, 
+  selectedIndex = -1,
+  hoveredIndex = -1,
+  onHover = () => {}
+}) {
   if (!suggestions || suggestions.length === 0) {
     return null
   }
@@ -12,8 +19,10 @@ export default function SearchSuggestions({ suggestions, onSelectSuggestion, loa
         {!loading && suggestions.map((suggestion, index) => (
           <div
             key={index}
-            className="suggestion-item"
+            className={`suggestion-item ${selectedIndex === index || hoveredIndex === index ? 'selected' : ''}`}
             onClick={() => onSelectSuggestion(suggestion)}
+            onMouseEnter={() => onHover(index)}
+            onMouseLeave={() => onHover(-1)}
           >
             <div className="suggestion-poster">
               {suggestion.poster_url ? (

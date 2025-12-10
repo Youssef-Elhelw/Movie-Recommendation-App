@@ -14,21 +14,38 @@
 }
 
 .app {
-  background-color: var(--bg-dark);
+  /* background-color: var(--bg-dark); */
+  /* bluring the image */
   min-height: 100vh;
   color: var(--text-light);
+  background-color: transparent;
 }
 
 body {
-  background-color: var(--bg-dark);
+  /* background-color: var(--bg-dark); */
   color: var(--text-light);
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 120%;
+  height: 120%;
+  background-image: url('./assets/background.png');
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px);
+  z-index: 1;
 }
 
 #root {
   max-width: 1280px;
   margin: 0 auto;
   /* padding: 2rem; */
-  padding-top: .5rem;
+  /* padding-top: .5rem; */
   text-align: center;
 }
 

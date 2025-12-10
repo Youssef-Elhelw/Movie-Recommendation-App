@@ -140,6 +140,13 @@
     line-height: 1.2;
 }
 
+.movie-info-featured .movie-description {
+    font-size: 1.1rem;
+    -webkit-line-clamp: 5;
+    display: -webkit-box;
+    margin-bottom: 1.5rem;
+}
+
 /* Compact Card */
 .movie-card-compact {
     flex: 0 0 150px;

@@ -4,6 +4,8 @@
     color: #b0b8c1;
     padding: 3rem 0 1rem;
     margin-top: 4rem;
+    position: relative;
+    z-index: 3;
 }
 
 .footer-container {

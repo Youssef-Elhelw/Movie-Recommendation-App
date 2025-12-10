@@ -8,6 +8,8 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const [loading, setLoading] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [fetchFlag, setFetchFlag] = useState(true)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [hoveredIndex, setHoveredIndex] = useState(-1)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -24,6 +26,8 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
       const data = await response.json()
       setSearchSuggestions(data)
       setShowSuggestions(true)
+      setSelectedIndex(-1)
+      setHoveredIndex(-1)
     } catch (error) {
       console.error('Error fetching search results:', error)
       setSearchSuggestions([])
@@ -40,36 +44,32 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     } else {
       setSearchSuggestions([])
       setShowSuggestions(false)
+      setSelectedIndex(-1)
+      setHoveredIndex(-1)
     }
   }, [searchQuery])
 
-  useEffect(()=>{
-    console.log(searchQuery);
-  },[searchQuery])
-
-  const handleSelectSuggestion = async (suggestion) => {
-      setFetchFlag(false)
-      setSearchQuery(suggestion.title);
-      handleGetRecommendation(suggestion.title);
-      console.log(searchQuery);
-      setShowSuggestions(false)
-      if (onMovieSelect) {
-        suggestion = {...suggestion, id: Math.random()}; // Assign a random id if not present
-        onMovieSelect(suggestion)
-      }
-      setTimeout(() => {
-        setFetchFlag(true)
-      }, 500);
+  const handleSelectSuggestion = (suggestion) => {
+    setFetchFlag(false)
+    setSearchQuery(suggestion.title)
+    handleGetRecommendation(suggestion.title)
+    setShowSuggestions(false)
+    setSelectedIndex(-1)
+    setHoveredIndex(-1)
+    if (onMovieSelect) {
+      suggestion = { ...suggestion, id: Math.random() }
+      onMovieSelect(suggestion)
+    }
+    setTimeout(() => {
+      setFetchFlag(true)
+    }, 500)
   }
 
-  const handleGetRecommendation = async (searchQuery_p) => {    
+  const handleGetRecommendation = async (searchQuery_p) => {
     if (searchQuery_p.trim()) {
-      // Call the recommend API
       fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
         .then(response => response.json())
         .then(data => {
-          // console.log('Recommendations:', data)
-          // log the movies tiltles
           console.log(searchQuery_p)
           data.forEach((item, index) => {
             console.log(`${index + 1}. ${item.title}`)
@@ -81,6 +81,58 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
         .catch(error => {
           console.error('Error fetching recommendations:', error)
         })
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    setSearchSuggestions([])
+    setShowSuggestions(false)
+    setSelectedIndex(-1)
+    setHoveredIndex(-1)
+  }
+
+  useEffect(()=>{
+    console.log("hoveredIndex changed:", selectedIndex);
+  },[selectedIndex])
+
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || searchSuggestions.length === 0) {
+      if (e.key === 'Enter') {
+        handleGetRecommendation(searchQuery)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedIndex(prev =>
+          prev < searchSuggestions.length - 1 ? prev + 1 : prev
+        )
+        setHoveredIndex(-1)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1))
+        setHoveredIndex(-1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedIndex >= 0) {
+          handleSelectSuggestion(searchSuggestions[selectedIndex])
+        } else {
+          handleGetRecommendation(searchQuery)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+        setHoveredIndex(-1)
+        break
+      default:
+        break
     }
   }
 
@@ -101,11 +153,22 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchSuggestions.length > 0 && setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
               />
+              {searchQuery && (
+                <button
+                  className="clear-button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                  type="button"
+                >
+                  ✕
+                </button>
+              )}
             </div>
             <button
               className="btn-get-recommendation"
-              onClick={()=>{handleGetRecommendation(searchQuery)}}
+              onClick={() => { handleGetRecommendation(searchQuery) }}
             >
               Get Recommendation
             </button>
@@ -115,6 +178,9 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
               suggestions={searchSuggestions}
               onSelectSuggestion={handleSelectSuggestion}
               loading={loading}
+              selectedIndex={selectedIndex}
+              hoveredIndex={hoveredIndex}
+              onHover={setHoveredIndex}
             />
           )}
         </div>

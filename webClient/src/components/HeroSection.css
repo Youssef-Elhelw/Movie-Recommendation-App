@@ -2,7 +2,7 @@
     /* background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
         url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23111" width="1200" height="600"/><circle cx="200" cy="100" r="100" fill="%23222" opacity="0.5"/><circle cx="900" cy="400" r="150" fill="%23333" opacity="0.3"/></svg>'); */
     background-image: url('../assets/cover.png');
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     padding: 6rem 2rem;
     text-align: center;
