@@ -70,9 +70,9 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
       fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
         .then(response => response.json())
         .then(data => {
-          console.log(searchQuery_p)
+          // console.log(searchQuery_p)
           data.forEach((item, index) => {
-            console.log(`${index + 1}. ${item.title}`)
+            // console.log(`${index + 1}. ${item.title}`)
           })
           if (onGetSuggestion) {
             onGetSuggestion(data)
@@ -93,7 +93,7 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   }
 
   useEffect(()=>{
-    console.log("hoveredIndex changed:", selectedIndex);
+    // console.log("hoveredIndex changed:", selectedIndex);
   },[selectedIndex])
 
   const handleKeyDown = (e) => {

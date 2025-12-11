@@ -98,13 +98,13 @@ export default function HomePage() {
   ])
 
   const onMovieSelect = (movie) => {
-    console.log('Selected movie:', movie)
+    // console.log('Selected movie:', movie)
     movie.image = movie.poster_url;
     setFeaturedMovies([movie]);
   }
 
   const onGetSuggestion = (movies) => {
-    console.log('Recommended movies:', movies)
+    // console.log('Recommended movies:', movies)
     const newMovies = movies.map((movie) => ({
       id: movie.index, // Assign a unique id
       title: movie.title,
