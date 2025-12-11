@@ -194,8 +194,12 @@ def search():
 def recommend():
     title = request.args.get("title", "")
     # results = recommend_movies(title, similarity, df, top_n=10)
-    main_idx, candidate_indices = recommendation_funtion(title, df, top_n=10)
-    reranked = stage2_rerank(main_idx, candidate_indices, df)
-    return jsonify(reranked)
+    try:
+        main_idx, candidate_indices = recommendation_funtion(title, df, top_n=10)
+        reranked = stage2_rerank(main_idx, candidate_indices, df)
+        return jsonify(reranked)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 app.run(host="0.0.0.0", port=5000, debug=True)
