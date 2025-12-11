@@ -1,6 +1,6 @@
 import './HomePage.css'
-import HeroSection from '../components/HeroSection'
-import MovieCard from '../components/MovieCard'
+import HeroSection from '../components/HeroSection.jsx'
+import MovieCard from '../components/MovieCard.jsx'
 import { useEffect, useState } from 'react'
 
 export default function HomePage() {

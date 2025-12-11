@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './HeroSection.css'
-import SearchSuggestions from './SearchSuggestions'
+import SearchSuggestions from './SearchSuggestions.jsx'
 
 export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const [searchQuery, setSearchQuery] = useState('')
