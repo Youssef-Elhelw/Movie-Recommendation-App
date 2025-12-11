@@ -145,6 +145,7 @@ def stage2_rerank(main_idx, candidate_indices, df):
     mat = vectorizer.fit_transform(texts)
     sim = cosine_similarity(mat[0:1], mat).flatten()
     reranked = sorted(list(zip(indices[1:], sim[1:])),key=lambda x: x[1],reverse=True)
+    # id,title,vote_average,vote_count,status,release_date,revenue,runtime,backdrop_path,budget,homepage,imdb_id,original_language,original_title,overview,popularity,poster_path,tagline,genres,production_companies,production_countries,spoken_languages,keywords
     reranked = [
         {
             "index": int(idx),
@@ -154,6 +155,18 @@ def stage2_rerank(main_idx, candidate_indices, df):
             "overview": df.iloc[idx].get("overview", ""),
             "poster_url": df.iloc[idx].get("poster_path", ""),
             "rating": float(df.iloc[idx].get("vote_average", 0)) if pd.notna(df.iloc[idx].get("vote_average")) else None,
+            "vote_count": int(df.iloc[idx].get("vote_count", 0)) if pd.notna(df.iloc[idx].get("vote_count")) else None,
+            "vote_average": float(df.iloc[idx].get("vote_average", 0)) if pd.notna(df.iloc[idx].get("vote_average")) else None,
+            "status": df.iloc[idx].get("status", ""),
+            "revenue": int(df.iloc[idx].get("revenue", 0)) if pd.notna(df.iloc[idx].get("revenue")) else None,
+            "backdrop_path": df.iloc[idx].get("backdrop_path", ""),
+            "budget": int(df.iloc[idx].get("budget", 0)) if pd.notna(df.iloc[idx].get("budget")) else None,
+            "homepage": df.iloc[idx].get("homepage", ""),
+            "imdb_id": df.iloc[idx].get("imdb_id", ""),
+            "original_language": df.iloc[idx].get("original_language", ""),
+            "original_title": df.iloc[idx].get("original_title", ""),
+            "popularity": float(df.iloc[idx].get("popularity", 0)) if pd.notna(df.iloc[idx].get("popularity")) else None,
+            "tagline": df.iloc[idx].get("tagline", ""),
             # Add any other columns from your CSV
         }
         for (idx, score) in reranked
