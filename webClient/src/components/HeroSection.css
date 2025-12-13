@@ -49,6 +49,78 @@
     width: 100%;
 }
 
+/* container is the positioning root for the double-down indicator */
+.search-container {
+    position: relative;
+}
+
+.double-down {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(100% + 8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    z-index: 40;
+}
+
+.down-arrow {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-left: 4px solid rgba(255, 255, 255, 0.98);
+    border-bottom: 4px solid rgba(255, 255, 255, 0.98);
+    transform: rotate(-45deg);
+    opacity: 1;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    animation: downBounce 1.2s infinite cubic-bezier(.25, .8, .25, 1);
+}
+
+.down-arrow.second {
+    width: 24px;
+    height: 24px;
+    border-left-width: 3px;
+    border-bottom-width: 3px;
+    opacity: 0.85;
+    animation-delay: 0.14s;
+}
+
+@keyframes downBounce {
+    0% {
+        transform: rotate(-45deg) translateY(-2px);
+        opacity: 0.6;
+    }
+
+    40% {
+        transform: rotate(-45deg) translateY(8px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(-45deg) translateY(18px);
+        opacity: 0.18;
+    }
+}
+
+/* visible/hidden states for fade-out */
+.double-down {
+    transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.double-down.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.double-down.hidden {
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+}
+
 .search-input-wrapper {
     display: flex;
     align-items: center;

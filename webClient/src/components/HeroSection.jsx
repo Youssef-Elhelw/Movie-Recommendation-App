@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import './HeroSection.css'
 import SearchSuggestions from './SearchSuggestions.jsx'
 
@@ -7,9 +7,11 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const [searchSuggestions, setSearchSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [arrowVisible, setArrowVisible] = useState(false)
   const [fetchFlag, setFetchFlag] = useState(true)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [hoveredIndex, setHoveredIndex] = useState(-1)
+  const arrowTimeoutRef = useRef(null)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -26,6 +28,12 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
       const data = await response.json()
       setSearchSuggestions(data)
       setShowSuggestions(true)
+      // show the double-down arrows briefly when suggestions arrive
+      setArrowVisible(true)
+      if (arrowTimeoutRef.current) clearTimeout(arrowTimeoutRef.current)
+      arrowTimeoutRef.current = setTimeout(() => {
+        setArrowVisible(false)
+      }, 4000)
       setSelectedIndex(-1)
       setHoveredIndex(-1)
     } catch (error) {
@@ -44,6 +52,11 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     } else {
       setSearchSuggestions([])
       setShowSuggestions(false)
+      setArrowVisible(false)
+      if (arrowTimeoutRef.current) {
+        clearTimeout(arrowTimeoutRef.current)
+        arrowTimeoutRef.current = null
+      }
       setSelectedIndex(-1)
       setHoveredIndex(-1)
     }
@@ -88,13 +101,26 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     setSearchQuery('')
     setSearchSuggestions([])
     setShowSuggestions(false)
+    setArrowVisible(false)
+    if (arrowTimeoutRef.current) {
+      clearTimeout(arrowTimeoutRef.current)
+      arrowTimeoutRef.current = null
+    }
     setSelectedIndex(-1)
     setHoveredIndex(-1)
+    document.querySelector('.search-input').focus();
   }
 
   useEffect(()=>{
     // console.log("hoveredIndex changed:", selectedIndex);
   },[selectedIndex])
+
+  useEffect(() => {
+    // cleanup on unmount
+    return () => {
+      if (arrowTimeoutRef.current) clearTimeout(arrowTimeoutRef.current)
+    }
+  }, [])
 
   const handleKeyDown = (e) => {
     if (!showSuggestions || searchSuggestions.length === 0) {
@@ -172,6 +198,13 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
             >
               Get Recommendation
             </button>
+            {/* double down arrows shown when suggestions are available; they auto-hide after a timeout */}
+            {!showSuggestions && searchSuggestions.length > 0 && !loading && (
+              <div className={`double-down ${arrowVisible ? 'visible' : 'hidden'}`} aria-hidden="true">
+                <span className="down-arrow" />
+                <span className="down-arrow second" />
+              </div>
+            )}
           </div>
           {showSuggestions && (
             <SearchSuggestions

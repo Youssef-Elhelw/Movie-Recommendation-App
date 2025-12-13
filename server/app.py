@@ -84,36 +84,6 @@ def possible_titles(movie_name, data=df):
         for (t, s, d, image, genre, description) in top_matches
     ]
 
-# def recommend_movies(movie_name, data=df, top_n=5):
-#     # find exact movie
-#     idx_list = data[data["title"].str.lower() == movie_name.lower()].index
-#     if len(idx_list) == 0:
-#         return []  # not found
-#     idx = idx_list[0]
-
-#     # similarity row
-#     scores = list(enumerate(cosineSimilarity[idx]))
-#     scores = sorted(scores, key=lambda x: x[1], reverse=True)
-#     scores = scores[1:top_n+1]  # skip the same movie
-
-#     movie_idxs = [i[0] for i in scores]
-
-#     # Return all movie info as dictionaries
-#     recommendations = []
-#     for movie_idx in movie_idxs:
-#         movie_row = data.iloc[movie_idx]
-#         recommendations.append({
-#             "index": int(movie_idx),
-#             "title": movie_row["title"],
-#             "release_date": movie_row["release_date"],
-#             "genres": movie_row.get("genres", ""),
-#             "overview": movie_row.get("overview", ""),
-#             "poster_url": movie_row.get("poster_path", ""),
-#             "rating": float(movie_row.get("vote_average", 0)) if pd.notna(movie_row.get("vote_average")) else None,
-#             # Add any other columns from your CSV
-#         })
-    
-#     return recommendations
 
 def recommendation_funtion(movie_name,data=df,top_n=5):
     idx = data[data["title"].str.lower() == movie_name.lower()].index
@@ -200,6 +170,41 @@ def recommend():
         return jsonify(reranked)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
+@app.get("/movie/<int:movie_id>")
+def get_movie(movie_id):
+    movie = df[df.index == movie_id]
+    if movie.empty:
+        return jsonify({"error": "Movie not found."}), 404
+
+    movie_data = {
+        "id": int(movie.index[0]),
+        "title": movie.iloc[0]["title"] if pd.notna(movie.iloc[0].get("title")) else None,
+        "release_date": movie.iloc[0]["release_date"] if pd.notna(movie.iloc[0].get("release_date")) else None,
+        "genres": movie.iloc[0].get("genres", "") if pd.notna(movie.iloc[0].get("genres")) else None,
+        "overview": movie.iloc[0].get("overview", "") if pd.notna(movie.iloc[0].get("overview")) else None,
+        "poster_url": movie.iloc[0].get("poster_path", "") if pd.notna(movie.iloc[0].get("poster_path")) else None,
+        "rating": float(movie.iloc[0].get("vote_average", 0)) if pd.notna(movie.iloc[0].get("vote_average")) else None,
+        "vote_count": int(movie.iloc[0].get("vote_count", 0)) if pd.notna(movie.iloc[0].get("vote_count")) else None,
+        "vote_average": float(movie.iloc[0].get("vote_average", 0)) if pd.notna(movie.iloc[0].get("vote_average")) else None,
+        "status": movie.iloc[0].get("status", "") if pd.notna(movie.iloc[0].get("status")) else None,
+        "revenue": int(movie.iloc[0].get("revenue", 0)) if pd.notna(movie.iloc[0].get("revenue")) else None,
+        "backdrop_path": movie.iloc[0].get("backdrop_path", "") if pd.notna(movie.iloc[0].get("backdrop_path")) else None,
+        "budget": int(movie.iloc[0].get("budget", 0)) if pd.notna(movie.iloc[0].get("budget")) else None,
+        "homepage": movie.iloc[0].get("homepage", "") if pd.notna(movie.iloc[0].get("homepage")) else None,
+        "imdb_id": movie.iloc[0].get("imdb_id", "") if pd.notna(movie.iloc[0].get("imdb_id")) else None,
+        "original_language": movie.iloc[0].get("original_language", "") if pd.notna(movie.iloc[0].get("original_language")) else None,
+        "original_title": movie.iloc[0].get("original_title", "") if pd.notna(movie.iloc[0].get("original_title")) else None,
+        "popularity": float(movie.iloc[0].get("popularity", 0)) if pd.notna(movie.iloc[0].get("popularity")) else None,
+        "tagline": movie.iloc[0].get("tagline", "") if pd.notna(movie.iloc[0].get("tagline")) else None,
+        "runtime": int(movie.iloc[0].get("runtime", 0)) if pd.notna(movie.iloc[0].get("runtime")) else None,
+        "production_companies": movie.iloc[0].get("production_companies", "") if pd.notna(movie.iloc[0].get("production_companies")) else None,
+        "spoken_languages": movie.iloc[0].get("spoken_languages", "") if pd.notna(movie.iloc[0].get("spoken_languages")) else None,
+        "production_countries": movie.iloc[0].get("production_countries", "") if pd.notna(movie.iloc[0].get("production_countries")) else None,
+        # Add any other columns from your CSV
+    }
+    return jsonify(movie_data)
+
 
 app.run(host="0.0.0.0", port=5000, debug=True)

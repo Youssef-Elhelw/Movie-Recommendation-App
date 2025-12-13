@@ -17,7 +17,7 @@ export default function Navbar() {
       <div className="navbar-container">
         <div className="navbar-logo">
           <span className="logo-icon">📺</span>
-          <span className="logo-text">MovieRecs</span>
+          <span className="logo-text">MAYmovie</span>
         </div>
 
         <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">

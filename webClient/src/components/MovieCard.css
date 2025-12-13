@@ -4,6 +4,8 @@
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
     border: 1px solid #2d3748;
+    display: flex;
+    flex-direction: column;
 }
 
 .movie-card:hover {
@@ -41,6 +43,11 @@
 
 .movie-info {
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    flex: 1;
 }
 
 .movie-meta {
@@ -64,6 +71,8 @@
     margin-bottom: 1rem;
     line-height: 1.5;
     -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    display: -webkit-box;
     overflow: hidden;
 }
 
@@ -142,9 +151,10 @@
 
 .movie-info-featured .movie-description {
     font-size: 1.1rem;
-    -webkit-line-clamp: 5;
-    display: -webkit-box;
+    /* -webkit-line-clamp: 5; */
+    display: block !important;
     margin-bottom: 1.5rem;
+    padding: 1.5rem;
 }
 
 /* Compact Card */
@@ -211,6 +221,15 @@
 
     .movie-meta {
         font-size: 0.8rem;
+    }
+
+    .movie-info-featured .movie-description {
+        font-size: .9rem;
+        padding: 2px;
+        /* -webkit-line-clamp: 5;
+        display: -webkit-box; */
+        display: block !important;
+        margin-bottom: 1.5rem;
     }
 
     .movie-description {
