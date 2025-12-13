@@ -12,6 +12,8 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [hoveredIndex, setHoveredIndex] = useState(-1)
   const arrowTimeoutRef = useRef(null)
+  const requestCounterRef = useRef(0)
+  const lastAppliedIdRef = useRef(0)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -19,28 +21,40 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
       setShowSuggestions(false)
       return
     }
-
+    // assign an incremental id to this request so we can ignore out-of-order responses
+    requestCounterRef.current += 1
+    const thisRequestId = requestCounterRef.current
     setLoading(true)
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`
       )
       const data = await response.json()
-      setSearchSuggestions(data)
-      setShowSuggestions(true)
-      // show the double-down arrows briefly when suggestions arrive
-      setArrowVisible(true)
-      if (arrowTimeoutRef.current) clearTimeout(arrowTimeoutRef.current)
-      arrowTimeoutRef.current = setTimeout(() => {
-        setArrowVisible(false)
-      }, 4000)
-      setSelectedIndex(-1)
-      setHoveredIndex(-1)
+      // only apply this response if its request id is newer than the last applied
+      if (thisRequestId > lastAppliedIdRef.current) {
+        lastAppliedIdRef.current = thisRequestId
+        setSearchSuggestions(data)
+        setShowSuggestions(true)
+        // show the double-down arrows briefly when suggestions arrive
+        setArrowVisible(true)
+        if (arrowTimeoutRef.current) clearTimeout(arrowTimeoutRef.current)
+        arrowTimeoutRef.current = setTimeout(() => {
+          setArrowVisible(false)
+        }, 4000)
+        setSelectedIndex(-1)
+        setHoveredIndex(-1)
+      }
     } catch (error) {
       console.error('Error fetching search results:', error)
       setSearchSuggestions([])
+      // only clear loading if this was the latest request
+      if (thisRequestId === requestCounterRef.current) {
+        setLoading(false)
+      }
     } finally {
-      setLoading(false)
+      if (thisRequestId === requestCounterRef.current) {
+        setLoading(false)
+      }
     }
   }
 
