@@ -14,6 +14,7 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const arrowTimeoutRef = useRef(null)
   const requestCounterRef = useRef(0)
   const lastAppliedIdRef = useRef(0)
+  const abortControllerRef = useRef(null)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -24,10 +25,18 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     // assign an incremental id to this request so we can ignore out-of-order responses
     requestCounterRef.current += 1
     const thisRequestId = requestCounterRef.current
+    // abort any previous in-flight fetch to save bandwidth
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort() } catch(e) {}
+      abortControllerRef.current = null
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
     setLoading(true)
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`
+        `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`,
+        { signal: controller.signal }
       )
       const data = await response.json()
       // only apply this response if its request id is newer than the last applied
@@ -45,6 +54,10 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
         setHoveredIndex(-1)
       }
     } catch (error) {
+      if (error.name === 'AbortError') {
+        // aborted - do nothing
+        return
+      }
       console.error('Error fetching search results:', error)
       setSearchSuggestions([])
       // only clear loading if this was the latest request
@@ -52,6 +65,10 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
         setLoading(false)
       }
     } finally {
+      // clear abort controller if this was the active request
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null
+      }
       if (thisRequestId === requestCounterRef.current) {
         setLoading(false)
       }
@@ -83,6 +100,21 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     setShowSuggestions(false)
     setSelectedIndex(-1)
     setHoveredIndex(-1)
+    // when a suggestion is selected we should ignore any previous in-flight responses
+    // advance the request counter and mark lastAppliedId so older responses are discarded
+    requestCounterRef.current += 1
+    lastAppliedIdRef.current = requestCounterRef.current
+    // abort any ongoing fetch
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort() } catch (e) {}
+      abortControllerRef.current = null
+    }
+    // hide arrows and clear their timeout
+    setArrowVisible(false)
+    if (arrowTimeoutRef.current) {
+      clearTimeout(arrowTimeoutRef.current)
+      arrowTimeoutRef.current = null
+    }
     if (onMovieSelect) {
       suggestion = { ...suggestion, id: Math.random() }
       onMovieSelect(suggestion)
