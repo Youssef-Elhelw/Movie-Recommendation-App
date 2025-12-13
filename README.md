@@ -33,7 +33,7 @@ This app analyzes movie from TMDB and uses natural language processing technique
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React / Next.js / Other |
+| Frontend | React / Other |
 | Backend | Python / Flask / FastAPI / Other |
 | ML & Data | TF-IDF, scikit-learn, pandas, cosine similarity |
 | Deployment | Vercel |
@@ -43,13 +43,13 @@ This app analyzes movie from TMDB and uses natural language processing technique
 ## 📸 Screenshots
 
 ### Home Page
-![Home Page]<img width="1082" height="847" alt="HomePage" src="https://github.com/user-attachments/assets/43f82de3-ede7-4cba-ba4b-504ecae19d65" />
+<img width="1082" height="847" alt="HomePage" src="https://github.com/user-attachments/assets/43f82de3-ede7-4cba-ba4b-504ecae19d65" />
 
 ### Search
-![Search](<img width="496" height="374" alt="Screenshot 2025-12-13 213329" src="https://github.com/user-attachments/assets/26721ead-aa6f-4e46-b73f-cabdac9bd98d" />)
+<img width="496" height="374" alt="Screenshot 2025-12-13 213329" src="https://github.com/user-attachments/assets/26721ead-aa6f-4e46-b73f-cabdac9bd98d" />
 
 ### Recommendations
-![Recommendations](<img width="1057" height="1015" alt="Screenshot 2025-12-13 213121" src="https://github.com/user-attachments/assets/3331d687-1cff-4c8a-bd38-936fe52b068f" />)
+<img width="1057" height="1015" alt="Screenshot 2025-12-13 213121" src="https://github.com/user-attachments/assets/3331d687-1cff-4c8a-bd38-936fe52b068f" />
 
 ---
 
