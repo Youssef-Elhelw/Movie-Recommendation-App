@@ -14,7 +14,7 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
   const arrowTimeoutRef = useRef(null)
   const requestCounterRef = useRef(0)
   const lastAppliedIdRef = useRef(0)
-  const abortControllerRef = useRef(null)
+   const firstResponseHandledRef = useRef(false)
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -25,22 +25,18 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     // assign an incremental id to this request so we can ignore out-of-order responses
     requestCounterRef.current += 1
     const thisRequestId = requestCounterRef.current
-    // abort any previous in-flight fetch to save bandwidth
-    if (abortControllerRef.current) {
-      try { abortControllerRef.current.abort() } catch(e) {}
-      abortControllerRef.current = null
-    }
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-    setLoading(true)
+    // debug: mark fetch start
+    try { console.debug && console.debug('search:start', { id: thisRequestId, query }) } catch (e) {}
+     firstResponseHandledRef.current = false
+     setLoading(true)
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`,
-        { signal: controller.signal }
+        `${import.meta.env.VITE_BACKEND_URL}/search?q=${encodeURIComponent(query)}`
       )
       const data = await response.json()
       // only apply this response if its request id is newer than the last applied
       if (thisRequestId > lastAppliedIdRef.current) {
+        try { console.debug && console.debug('search:apply', { id: thisRequestId, lastApplied: lastAppliedIdRef.current }) } catch(e) {}
         lastAppliedIdRef.current = thisRequestId
         setSearchSuggestions(data)
         setShowSuggestions(true)
@@ -52,26 +48,23 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
         }, 4000)
         setSelectedIndex(-1)
         setHoveredIndex(-1)
+      } else {
+        try { console.debug && console.debug('search:ignored', { id: thisRequestId, lastApplied: lastAppliedIdRef.current }) } catch(e) {}
       }
+       // first response to arrive (regardless of whether applied) should clear loading
+       if (!firstResponseHandledRef.current) {
+         firstResponseHandledRef.current = true
+         setLoading(false)
+       }
     } catch (error) {
-      if (error.name === 'AbortError') {
-        // aborted - do nothing
-        return
-      }
       console.error('Error fetching search results:', error)
       setSearchSuggestions([])
-      // only clear loading if this was the latest request
-      if (thisRequestId === requestCounterRef.current) {
-        setLoading(false)
-      }
+       if (!firstResponseHandledRef.current) {
+         firstResponseHandledRef.current = true
+         setLoading(false)
+       }
     } finally {
-      // clear abort controller if this was the active request
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null
-      }
-      if (thisRequestId === requestCounterRef.current) {
-        setLoading(false)
-      }
+       // no-op for loading here; first response (success or error) already clears it
     }
   }
 
@@ -100,15 +93,10 @@ export default function HeroSection({ onMovieSelect, onGetSuggestion }) {
     setShowSuggestions(false)
     setSelectedIndex(-1)
     setHoveredIndex(-1)
-    // when a suggestion is selected we should ignore any previous in-flight responses
+    // when a suggestion is selected we should ignore any previous responses
     // advance the request counter and mark lastAppliedId so older responses are discarded
     requestCounterRef.current += 1
     lastAppliedIdRef.current = requestCounterRef.current
-    // abort any ongoing fetch
-    if (abortControllerRef.current) {
-      try { abortControllerRef.current.abort() } catch (e) {}
-      abortControllerRef.current = null
-    }
     // hide arrows and clear their timeout
     setArrowVisible(false)
     if (arrowTimeoutRef.current) {
