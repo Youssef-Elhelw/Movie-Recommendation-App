@@ -22,7 +22,7 @@ class Requests {
 
   static Future<List<RecommendResult>> getRecommendations(String title) async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.12:5000/recommendation?title=$title'),
+      Uri.parse('http://192.168.1.12:5000/recommend?title=$title'),
     );
 
     if (response.statusCode == 200) {
