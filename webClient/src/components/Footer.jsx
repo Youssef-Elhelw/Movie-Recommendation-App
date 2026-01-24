@@ -1,4 +1,5 @@
 import React from 'react'
+import logo from '../assets/logo2.png'
 import './Footer.css'
 
 function Footer() {
@@ -9,8 +10,8 @@ function Footer() {
           {/* About Section */}
           <div className="footer-section">
             <div className="footer-logo">
-              <span className="logo-icon">📺</span>
-              <span className="logo-text">MovieRecs</span>
+          <span className="logo-icon"><img src={logo} alt="logo" className='logo-img' /></span>
+          <span className="logo-text">Movie</span>
             </div>
             <p className="footer-description">
               Discover your next favorite movie with AI-powered recommendations tailored to your taste.

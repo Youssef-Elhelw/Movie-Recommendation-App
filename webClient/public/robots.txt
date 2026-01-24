@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap location (update if you use a different domain)
+Sitemap: https://maymovie.vercel.app/sitemap.xml
+
+# Crawl-delay can be used for low-capacity servers (optional)
+# Crawl-delay: 10
+
+# Host directive is non-standard and ignored by many crawlers
+# Host: maymovie.vercel.app

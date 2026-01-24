@@ -2,7 +2,7 @@ import './MovieCard.css'
 import { useNavigate } from 'react-router-dom'
 
 export default function MovieCard({ movie, featured = false, compact = false , setMovieData}) {
-  console.log('MovieCard movie:', movie);
+  // console.log('MovieCard movie:', movie);
   const navigate = useNavigate()
   if (compact) {
     return (

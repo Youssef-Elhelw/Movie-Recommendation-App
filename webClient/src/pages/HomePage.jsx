@@ -43,7 +43,7 @@ export default function HomePage({ setMovieData }) {
       
       <section className="featured-section">
         <div className="container">
-            <h2 className="section-title">Selected Moive</h2>
+            <h2 className="section-title">Selected Movie</h2>
           <div className="featured-movie">
 
             { featuredMovies.length > 0 ?

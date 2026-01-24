@@ -3,10 +3,58 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link rel="icon" type="image/png" href="./src/assets/favicon-32x32.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="./src/assets/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta description="Movie Recommendation App" />
-  <title>webclient</title>
+  <meta name="description"
+    content="Maymovie — Discover movies tailored to your taste with AI-powered recommendations. Search, explore, and get suggestions based on your preferences." />
+  <meta name="keywords"
+    content="movies, movie recommendations, recommend movies, film suggestions, AI movie recommender, Maymovie" />
+  <meta name="author" content="Maymovie" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://maymovie.vercel.app/" />
+  <title>Maymovie</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Maymovie — Movie Recommendation App" />
+  <meta property="og:description" content="Discover movies tailored to your taste with AI-powered recommendations." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://maymovie.vercel.app/" />
+  <meta property="og:image" content="https://maymovie.vercel.app/og-image.jpg" />
+  <meta property="og:site_name" content="Maymovie" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Maymovie" />
+  <meta name="twitter:creator" content="@Maymovie" />
+  <meta name="twitter:title" content="Maymovie — Movie Recommendation App" />
+  <meta name="twitter:description" content="Discover movies tailored to your taste with AI-powered recommendations." />
+  <meta name="twitter:image" content="https://maymovie.vercel.app/og-image.jpg" />
+
+  <!-- Mobile / PWA -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="msapplication-TileColor" content="#ffffff" />
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Maymovie",
+    "url": "https://maymovie.vercel.app/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://maymovie.vercel.app/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
 </head>
 
 <body>
