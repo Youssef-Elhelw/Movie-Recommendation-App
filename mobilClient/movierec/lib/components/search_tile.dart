@@ -3,10 +3,11 @@ import 'package:movierec/model/search_result.dart';
 
 class SearchTile extends StatelessWidget {
   final SearchResult item;
-  const SearchTile({super.key, required this.item});
+  final GestureTapCallback? onTap;
+  const SearchTile({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(title: Text(item.title));
+    return ListTile(title: Text(item.title), onTap: onTap);
   }
 }
