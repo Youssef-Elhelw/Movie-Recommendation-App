@@ -2,7 +2,7 @@
     position: relative;
     min-height: 100vh;
     color: #fff;
-    z-index: 2;
+    z-index: 3;
 }
 
 .movie-page .backdrop {
@@ -18,7 +18,7 @@
 
 .movie-page .container {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;

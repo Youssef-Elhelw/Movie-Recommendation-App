@@ -26,6 +26,13 @@
     z-index: 101;
 }
 
+.navbar-logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
 .logo-icon {
     font-size: 1.8rem;
     display: flex;
@@ -44,16 +51,52 @@
     display: flex;
     list-style: none;
     gap: 2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-menu li {
+    list-style: none;
 }
 
 .navbar-menu a {
     color: #b0b8c1;
     font-size: 0.95rem;
     transition: color 0.3s;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 0.25rem;
+}
+
+.navbar-menu a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #ff5f24, #ff875b, #fbb533);
+    transition: width 0.3s ease;
+}
+
+.yellow-highlight {
+    background: linear-gradient(135deg, #ff5f24, #ff875b, #fbb533);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+    /* color: #000 !important;
+    background: yellow;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px; */
 }
 
 .navbar-menu a:hover {
     color: #ffffff;
+}
+
+.navbar-menu a:hover::after {
+    width: 100%;
 }
 
 .navbar-actions {
@@ -99,6 +142,7 @@
     cursor: pointer;
     z-index: 101;
     gap: 0.4rem;
+    padding: 0.5rem;
 }
 
 .hamburger span {
@@ -256,11 +300,11 @@
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
+        display: flex;
     }
 
     .navbar-menu.active {
-        max-height: 300px;
-        display: flex;
+        max-height: 400px;
     }
 
     .navbar-menu li {
@@ -276,11 +320,28 @@
         padding: 1rem 2rem;
         color: #b0b8c1;
         transition: all 0.3s;
+        position: relative;
+    }
+
+    .navbar-menu a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(135deg, #ff5f24, #ff875b, #fbb533);
+        transition: width 0.3s ease;
     }
 
     .navbar-menu a:hover {
         background-color: rgba(0, 102, 255, 0.1);
         color: #0066ff;
+    }
+
+    .navbar-menu a:hover::after {
+        width: 100%;
+        background: #0066ff;
     }
 }
 
