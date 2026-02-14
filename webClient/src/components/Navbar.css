@@ -133,6 +133,10 @@
     transform: scale(1.1);
 }
 
+.btn-coffee {
+    display: none;
+}
+
 /* Hamburger Menu */
 .hamburger {
     display: none;
@@ -226,6 +230,27 @@
 
     .navbar-actions {
         gap: 0.75rem;
+        order: 2;
+    }
+
+    .hamburger {
+        order: 3;
+    }
+
+    .btn-coffee {
+        display: inline-block;
+        background-color: #ff9500;
+        color: #0f1419;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        font-size: 0.8rem;
+    }
+
+    .btn-coffee:hover {
+        background-color: #ffb038;
     }
 
     .btn-signin {

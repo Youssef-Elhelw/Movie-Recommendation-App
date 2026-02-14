@@ -29,8 +29,11 @@ export default function Navbar() {
           <li><Link to="/genres" onClick={closeMenu}>Genres</Link></li>
           <li><Link to="/trending" onClick={closeMenu}>Trending</Link></li>
           <li><Link to="/about" onClick={closeMenu}>About</Link></li>
-          <li><a href="https://buymeacoffee.com/youssefelhelw" target="_blank" rel="noopener noreferrer" className='yellow-highlight' onClick={closeMenu}>Buy Me a Coffee</a></li>
         </ul>
+
+        <div className="navbar-actions">
+          <a href="https://buymeacoffee.com/youssefelhelw" target="_blank" rel="noopener noreferrer" className='btn-coffee'>☕ Donate</a>
+        </div>
 
         <button className={`hamburger ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu} aria-label="Toggle menu">
           <span></span>
