@@ -1,6 +1,6 @@
 {
-    "short_name": "MyProject",
-    "name": "My Awesome Project Name",
+    "short_name": "maymovie",
+    "name": "MayMovie",
     "icons": [
         {
             "src": "logo2.png",
