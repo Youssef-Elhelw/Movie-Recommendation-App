@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import logo from '../assets/logo2.png'
 import './Navbar.css'
 
@@ -17,11 +18,24 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-logo">
-          <span className="logo-icon"><img src={logo} alt="logo" className='logo-img' /></span>
-          <span className="logo-text">Movie</span>
+          <Link to="/">
+            <span className="logo-icon"><img src={logo} alt="logo" className='logo-img' /></span>
+            <span className="logo-text">Movie</span>
+          </Link>
         </div>
 
-        <button className=" hidden" onClick={toggleMenu} aria-label="Toggle menu">
+        <ul className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
+          <li><Link to="/" onClick={closeMenu}>Home</Link></li>
+          <li><Link to="/genres" onClick={closeMenu}>Genres</Link></li>
+          <li><Link to="/trending" onClick={closeMenu}>Trending</Link></li>
+          <li><Link to="/about" onClick={closeMenu}>About</Link></li>
+        </ul>
+
+        <div className="navbar-actions">
+          <a href="https://buymeacoffee.com/youssefelhelw" target="_blank" rel="noopener noreferrer" className='btn-coffee'>☕ Donate</a>
+        </div>
+
+        <button className={`hamburger ${isMenuOpen ? 'active' : ''}`} onClick={toggleMenu} aria-label="Toggle menu">
           <span></span>
           <span></span>
           <span></span>

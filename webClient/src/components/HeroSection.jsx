@@ -57,7 +57,7 @@
           setLoading(false)
         }
       } catch (error) {
-        console.error('Error fetching search results:', error)
+        console.log('Error fetching search results:', error)
         setSearchSuggestions([])
         if (!firstResponseHandledRef.current) {
           firstResponseHandledRef.current = true
