@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import Papa from 'papaparse'
+import { useSelector } from 'react-redux'
+import { selectContentFilter } from '../store/moviesSlice'
 import MovieCard from '../components/MovieCard'
-import csvData from '../assets/final_movies.csv?raw'
+import ContentFilter from '../components/ContentFilter'
+import csvData from '../assets/processed_movies.csv?raw'
 import './Trending.css'
+import { filterByContentType } from '../utils/contentFilterUtils'
 
 function Trending({ setMovieData }) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('popularity')
+  const contentFilter = useSelector(selectContentFilter)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -33,12 +38,13 @@ function Trending({ setMovieData }) {
             popularity: parseFloat(movie.popularity) || 0,
             release_date: movie.release_date,
             vote_count: parseInt(movie.vote_count) || 0,
+            is_movie: isNaN(parseInt(movie.is_movie)) ? 1 : parseInt(movie.is_movie),
             csvIndex: movie.csvIndex
           }))
           // console.log('Parsed movies data:', moviesData)
-        // Sort by popularity by default
+        // Sort by popularity by default - load top 100 to have enough after filtering
         const sorted = moviesData.sort((a, b) => b.popularity - a.popularity)
-        setMovies(sorted.slice(0, 20)) // Get top 20 trending
+        setMovies(sorted.slice(0, 100))
         setLoading(false)
       },
     })
@@ -46,18 +52,19 @@ function Trending({ setMovieData }) {
 
   const getSortedMovies = () => {
     const moviesCopy = [...movies]
+    let filtered = filterByContentType(moviesCopy, contentFilter)
     
     switch (sortBy) {
       case 'popularity':
-        return moviesCopy.sort((a, b) => b.popularity - a.popularity)
+        return filtered.sort((a, b) => b.popularity - a.popularity)
       case 'rating':
-        return moviesCopy.sort((a, b) => b.vote_average - a.vote_average)
+        return filtered.sort((a, b) => b.vote_average - a.vote_average)
       case 'latest':
-        return moviesCopy.sort((a, b) => new Date(b.release_date) - new Date(a.release_date))
+        return filtered.sort((a, b) => new Date(b.release_date) - new Date(a.release_date))
       case 'votes':
-        return moviesCopy.sort((a, b) => b.vote_count - a.vote_count)
+        return filtered.sort((a, b) => b.vote_count - a.vote_count)
       default:
-        return moviesCopy
+        return filtered
     }
   }
 
@@ -72,7 +79,6 @@ function Trending({ setMovieData }) {
   }
 
   const sortedMovies = getSortedMovies()
-
   return (
     <div className="trending-page">
       <div className="container">
@@ -80,6 +86,8 @@ function Trending({ setMovieData }) {
           <h1>🔥 Trending Now</h1>
           <p>The most popular and highest-rated movies right now</p>
         </section>
+
+        <ContentFilter />
 
         <section className="trending-filters">
           <h2>Sort By</h2>

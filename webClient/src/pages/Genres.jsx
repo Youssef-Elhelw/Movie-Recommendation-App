@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import Papa from 'papaparse'
+import { useSelector } from 'react-redux'
+import { selectContentFilter } from '../store/moviesSlice'
 import MovieCard from '../components/MovieCard'
-import csvData from '../assets/final_movies.csv?raw'
+import ContentFilter from '../components/ContentFilter'
+import csvData from '../assets/processed_movies.csv?raw'
 import './Genres.css'
+import { filterByContentType } from '../utils/contentFilterUtils'
 
 function Genres({ setMovieData }) {
   const [movies, setMovies] = useState([])
@@ -11,6 +15,7 @@ function Genres({ setMovieData }) {
   const [loading, setLoading] = useState(true)
   const [filteredMovies, setFilteredMovies] = useState([])
   const [displayCount, setDisplayCount] = useState(8)
+  const contentFilter = useSelector(selectContentFilter)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -26,7 +31,11 @@ function Genres({ setMovieData }) {
       header: true,
       complete: (results) => {
         const moviesData = results.data
-          .map((movie, idx) => ({...movie, csvIndex: idx}))
+          .map((movie, idx) => ({
+            ...movie,
+            csvIndex: idx,
+            is_movie: isNaN(parseInt(movie.is_movie)) ? 1 : parseInt(movie.is_movie)
+          }))
           .filter(movie => movie.title && movie.genres)
         setMovies(moviesData)
 
@@ -47,14 +56,16 @@ function Genres({ setMovieData }) {
 
   useEffect(() => {
     if (selectedGenre) {
-      const filtered = movies.filter(movie =>
+      let filtered = movies.filter(movie =>
         movie.genres && movie.genres.includes(selectedGenre)
       )
+      // Apply content filter
+      filtered = filterByContentType(filtered, contentFilter)
       setFilteredMovies(filtered.slice(0, displayCount))
     } else {
       setFilteredMovies([])
     }
-  }, [selectedGenre, movies, displayCount])
+  }, [selectedGenre, movies, displayCount, contentFilter])
 
   if (loading) {
     return (
@@ -73,6 +84,8 @@ function Genres({ setMovieData }) {
           <h1>Explore by Genre</h1>
           <p>Browse movies by your favorite genres</p>
         </section>
+
+        <ContentFilter />
 
         <section className="genres-selector">
           <h2>Select a Genre</h2>
@@ -109,12 +122,16 @@ function Genres({ setMovieData }) {
                         vote_average: movie.vote_average,
                         rating: movie.vote_average,
                         release_date: movie.release_date,
+                        is_movie: movie.is_movie
                       }}
                       setMovieData={setMovieData}
                     />
                   ))}
                 </div>
-                {movies.filter(movie => movie.genres && movie.genres.includes(selectedGenre)).length > displayCount && (
+                {movies.filter(m => {
+                  let f = m.genres && m.genres.includes(selectedGenre)
+                  return f && filterByContentType([m], contentFilter).length > 0
+                }).length > displayCount && (
                   <button className="see-more-btn" onClick={() => setDisplayCount(displayCount + 8)}>
                     See More
                   </button>

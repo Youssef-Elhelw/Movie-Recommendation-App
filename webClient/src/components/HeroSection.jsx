@@ -1,4 +1,6 @@
   import { useEffect, useState, useRef } from 'react'
+  import { useSelector } from 'react-redux'
+  import { selectContentFilter } from '../store/moviesSlice'
   import './HeroSection.css'
   import SearchSuggestions from './SearchSuggestions.jsx'
 
@@ -11,6 +13,7 @@
     const [fetchFlag, setFetchFlag] = useState(true)
     const [selectedIndex, setSelectedIndex] = useState(-1)
     const [hoveredIndex, setHoveredIndex] = useState(-1)
+    const contentFilter = useSelector(selectContentFilter)
     const arrowTimeoutRef = useRef(null)
     const requestCounterRef = useRef(0)
     const lastAppliedIdRef = useRef(0)
@@ -117,10 +120,7 @@
         fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
           .then(response => response.json())
           .then(data => {
-            // console.log(searchQuery_p)
-            data.forEach((item, index) => {
-              // console.log(`${index + 1}. ${item.title}`)
-            })
+            // Data now has structure: { movies: [...], series: [...] }
             if (onGetSuggestion) {
               onGetSuggestion(data)
             }

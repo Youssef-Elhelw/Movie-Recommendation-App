@@ -79,6 +79,7 @@ export default function MoviePage({  }) {
 
           <div className="movie-info">
             <h1 className="movie-title">{movie.title ?? movie.original_title ?? '—'}</h1>
+            {movie.is_movie === 0 && <span className="type-badge">📺 TV Series</span>}
             {movie.tagline && <p className="tagline">{movie.tagline}</p>}
 
             <div className="meta-grid">

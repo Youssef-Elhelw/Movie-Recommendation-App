@@ -46,7 +46,7 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: stretch;
     flex: 1;
     text-align: center;

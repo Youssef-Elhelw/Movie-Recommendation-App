@@ -1,19 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-    featured: [
-        // {
-        //     description: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: \"inception\", the implantation of another person's idea into a target's subconscious.",
-        //     genre: "Action, Science Fiction, Adventure",
-        //     id: 0.2874389046866638,
-        //     image: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-        //     poster_url: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-        //     release_date: "2010-07-15",
-        //     score: 35,
-        //     title: "Inception"
-        // }
-    ],
-    recommended: [],
+    contentFilter: 'both', // 'movies', 'series', or 'both'
+    featured: [],
+    recommendedMovies: [],
+    recommendedSeries: [],
+    suggestedMovies: [],
+    suggestedSeries: [],
     //     [{
     //         "backdrop_path": "/7Wev9JMo6R5XAfz2KDvXb7oPMmy.jpg",
     //         "budget": 9000000,
@@ -157,8 +150,7 @@ const initialState = {
     //         "tagline": "Welcome to a world without rules.",
     //         "title": "The Dark Knight",
     //         "vote_average": 8.512,
-    //         "vote_count": 30619
-    //     }
+    //     },
     // ]
 }
 
@@ -169,25 +161,46 @@ const moviesSlice = createSlice({
         setFeatured(state, action) {
             state.featured = action.payload ?? []
         },
-        setRecommended(state, action) {
-            state.recommended = action.payload ?? []
+        setRecommendedMovies(state, action) {
+            state.recommendedMovies = action.payload ?? []
         },
-        setSuggested(state, action) {
-            state.suggested = action.payload ?? []
+        setRecommendedSeries(state, action) {
+            state.recommendedSeries = action.payload ?? []
         },
-        setAll(state, action) {
-            const { featured, recommended, suggested } = action.payload || {}
-            state.featured = featured ?? []
-            state.recommended = recommended ?? []
-            state.suggested = suggested ?? []
+        setSuggestedMovies(state, action) {
+            state.suggestedMovies = action.payload ?? []
+        },
+        setSuggestedSeries(state, action) {
+            state.suggestedSeries = action.payload ?? []
+        },
+        setContentFilter(state, action) {
+            state.contentFilter = action.payload ?? 'both'
+        },
+        setRecommendations(state, action) {
+            const { recommendedMovies, recommendedSeries, suggestedMovies, suggestedSeries } = action.payload || {}
+            state.recommendedMovies = recommendedMovies ?? []
+            state.recommendedSeries = recommendedSeries ?? []
+            state.suggestedMovies = suggestedMovies ?? []
+            state.suggestedSeries = suggestedSeries ?? []
         }
     }
 })
 
-export const { setFeatured, setRecommended, setSuggested, setAll } = moviesSlice.actions
+export const {
+    setFeatured,
+    setRecommendedMovies,
+    setRecommendedSeries,
+    setSuggestedMovies,
+    setSuggestedSeries,
+    setContentFilter,
+    setRecommendations
+} = moviesSlice.actions
 export default moviesSlice.reducer
 
 // selectors
 export const selectFeatured = (state) => state.movies.featured
-export const selectRecommended = (state) => state.movies.recommended
-export const selectSuggested = (state) => state.movies.suggested
+export const selectRecommendedMovies = (state) => state.movies.recommendedMovies
+export const selectRecommendedSeries = (state) => state.movies.recommendedSeries
+export const selectSuggestedMovies = (state) => state.movies.suggestedMovies
+export const selectSuggestedSeries = (state) => state.movies.suggestedSeries
+export const selectContentFilter = (state) => state.movies.contentFilter

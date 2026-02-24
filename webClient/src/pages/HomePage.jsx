@@ -1,15 +1,19 @@
 import './HomePage.css'
 import HeroSection from '../components/HeroSection.jsx'
+import ContentFilter from '../components/ContentFilter.jsx'
 import MovieCard from '../components/MovieCard.jsx'
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { setFeatured, setRecommended, setSuggested, selectFeatured, selectRecommended, selectSuggested } from '../store/moviesSlice'
+import { setFeatured, setRecommendedMovies, setRecommendedSeries, setSuggestedMovies, setSuggestedSeries, selectFeatured, selectRecommendedMovies, selectRecommendedSeries, selectSuggestedMovies, selectSuggestedSeries, selectContentFilter } from '../store/moviesSlice'
 
 export default function HomePage({ setMovieData }) {
   const dispatch = useDispatch()
   const featuredMovies = useSelector(selectFeatured)
-  const recommendedMovies = useSelector(selectRecommended)
-  const suggestedMovies = useSelector(selectSuggested)
+  const recommendedMovies = useSelector(selectRecommendedMovies)
+  const recommendedSeries = useSelector(selectRecommendedSeries)
+  const suggestedMovies = useSelector(selectSuggestedMovies)
+  const suggestedSeries = useSelector(selectSuggestedSeries)
+  const contentFilter = useSelector(selectContentFilter)
   // console.log('HomePage featuredMovies:', featuredMovies);
 
   const onMovieSelect = (movie) => {
@@ -17,19 +21,35 @@ export default function HomePage({ setMovieData }) {
     dispatch(setFeatured([mv]))
   }
 
-  const onGetSuggestion = (movies) => {
-    const newMovies = (movies || []).map((movie) => ({
-      id: movie.index, // Assign a unique id
+  const onGetSuggestion = (apiResponse) => {
+    const moviesList = (apiResponse?.movies || []).map((movie) => ({
+      id: movie.index,
       title: movie.title,
       year: movie.release_date ? movie.release_date.slice(0,4) : 'N/A',
       genre: movie.genres,
       description: movie.overview,
       image: movie.poster_url,
       poster: movie.poster_url,
-      rating: movie.rating
+      rating: movie.rating,
+      is_movie: movie.is_movie
     }))
-    dispatch(setRecommended(newMovies.slice(0,3)))
-    dispatch(setSuggested(newMovies.slice(3)))
+    
+    const seriesList = (apiResponse?.series || []).map((series) => ({
+      id: series.index,
+      title: series.title,
+      year: series.release_date ? series.release_date.slice(0,4) : 'N/A',
+      genre: series.genres,
+      description: series.overview,
+      image: series.poster_url,
+      poster: series.poster_url,
+      rating: series.rating,
+      is_movie: series.is_movie
+    }))
+
+    dispatch(setRecommendedMovies(moviesList.slice(0,10)))
+    dispatch(setRecommendedSeries(seriesList.slice(0,10)))
+    dispatch(setSuggestedMovies(moviesList.slice(10)))
+    dispatch(setSuggestedSeries(seriesList.slice(10)))
   }
 
     useEffect(()=>{
@@ -40,6 +60,8 @@ export default function HomePage({ setMovieData }) {
   return (
     <div className="home-page">
       <HeroSection onMovieSelect={onMovieSelect} onGetSuggestion={onGetSuggestion} />
+      
+      <ContentFilter />
       
       <section className="featured-section">
         <div className="container">
@@ -58,27 +80,59 @@ export default function HomePage({ setMovieData }) {
 
       <section className="recommendations-section">
         <div className="container">
-          <h2 className="section-title">Our Recommendation</h2>
-          <div className="recommendations-grid">
-            { recommendedMovies.length > 0 ?
-            recommendedMovies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} setMovieData={setMovieData} />
-            )) : <div>No recommendations yet.</div>
-            }
-          </div>
+          {(contentFilter === 'movies' || contentFilter === 'both') && (
+            <div className="recommendations-movies">
+              <h2 className="section-title">🎬 Recommended Movies</h2>
+              <div className="recommendations-grid">
+                { recommendedMovies.length > 0 ?
+                recommendedMovies.map(movie => (
+                  <MovieCard key={movie.id} movie={movie} setMovieData={setMovieData} />
+                )) : <div className="no-content">No movie recommendations yet.</div>
+                }
+              </div>
+            </div>
+          )}
+          
+          {(contentFilter === 'series' || contentFilter === 'both') && (
+            <div className="recommendations-series">
+              <h2 className="section-title">📺 Recommended Series</h2>
+              <div className="recommendations-grid">
+                { recommendedSeries.length > 0 ?
+                recommendedSeries.map(series => (
+                  <MovieCard key={series.id} movie={series} setMovieData={setMovieData} />
+                )) : <div className="no-content">No series recommendations yet.</div>
+                }
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
       <section className="suggested-section">
         <div className="container">
-          <h2 className="section-title">You Might Also Like...</h2>
-          <div className="movies-scroll">
-            { suggestedMovies.length > 0 &&
-            suggestedMovies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} compact  setMovieData={setMovieData}/>
-            ))
-            }
-          </div>
+          {(suggestedMovies.length > 0 || suggestedSeries.length > 0) && (
+            <div className="suggested-combined">
+              <h2 className="section-title">You Might Also Like...</h2>
+              <div className="movies-scroll">
+                {contentFilter === 'movies' && suggestedMovies.map(movie => (
+                  <MovieCard key={movie.id} movie={movie} compact setMovieData={setMovieData}/>
+                ))}
+                {contentFilter === 'series' && suggestedSeries.map(series => (
+                  <MovieCard key={series.id} movie={series} compact setMovieData={setMovieData}/>
+                ))}
+                {contentFilter === 'both' && (
+                  <>
+                    {suggestedMovies.map(movie => (
+                      <MovieCard key={`movie-${movie.id}`} movie={movie} compact setMovieData={setMovieData}/>
+                    ))}
+                    {suggestedSeries.map(series => (
+                      <MovieCard key={`series-${series.id}`} movie={series} compact setMovieData={setMovieData}/>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

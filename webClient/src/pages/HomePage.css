@@ -43,6 +43,16 @@
     padding: 3rem 0;
 }
 
+.recommendations-movies,
+.recommendations-series {
+    margin-bottom: 3rem;
+}
+
+.recommendations-movies:last-child,
+.recommendations-series:last-child {
+    margin-bottom: 0;
+}
+
 .section-title {
     font-size: 1.8rem;
     font-weight: bold;
@@ -58,6 +68,25 @@
 
 .suggested-section {
     padding: 3rem 0;
+}
+
+.suggested-movies,
+.suggested-series,
+.suggested-combined {
+    margin-bottom: 3rem;
+}
+
+.suggested-movies:last-child,
+.suggested-series:last-child,
+.suggested-combined:last-child {
+    margin-bottom: 0;
+}
+
+.no-content {
+    text-align: center;
+    padding: 2rem;
+    color: #9aa7c8;
+    font-size: 1rem;
 }
 
 .movies-scroll {
