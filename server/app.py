@@ -8,11 +8,30 @@ from sklearn.metrics.pairwise import linear_kernel
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse import load_npz
 import nltk
+
+# --- NLTK SETUP ---
+# Create a specific directory for NLTK so it doesn't fail on permissions
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+nltk_path = os.path.join(BASE_DIR, 'nltk_data')
+if not os.path.exists(nltk_path):
+    os.makedirs(nltk_path)
+
+# Tell NLTK to look in your local folder first
+nltk.data.path.append(nltk_path)
+
+try:
+    # Try to find the new punkt_tab resource
+    nltk.data.find('tokenizers/punkt_tab', paths=[nltk_path])
+except LookupError:
+    # If not found, download both the old and new versions to be safe
+    nltk.download('punkt', download_dir=nltk_path)
+    nltk.download('punkt_tab', download_dir=nltk_path)
+    nltk.download('stopwords', download_dir=nltk_path)
+
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 # --- SERVER CONFIGURATION ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Critical for PythonAnywhere: NLTK requires local data downloads
 try:
@@ -33,51 +52,149 @@ CORS(app)
 # --- UTILITY & PREPROCESSING ---
 
 def normalize_for_search(text):
+    """Deep cleaning for search queries and titles."""
     if not isinstance(text, str): return ""
-    text = text.lower().replace('&', 'and')
+    text = text.lower()
+    text = text.replace('&', 'and')
     return re.sub(r'[^a-z0-9]', '', text)
 
 stop_words = set(stopwords.words("english"))
 
 def clean_genres_text(text):
-    if not isinstance(text, str): return ""
-    text = re.sub(r"[^a-zA-Z\s]", "", text).lower()
-    tokens = word_tokenize(text)
-    tokens = [word for word in tokens if word not in stop_words]
+    # here i will remove any speacial character or any number
+    text=re.sub(r"[^a-zA-Z\s]", "", text)
+    text=text.lower()
+    tokens=word_tokenize(text)
+    tokens=[word for word in tokens if word not in stop_words]
     return " ".join(tokens)
 
 # Prepare all columns needed for the logic
-df["genres"] = df["genres"].fillna("")
-df["Cleaned_genres"] = df["genres"].apply(clean_genres_text)
-df["keywords"] = df["keywords"].fillna("")
-df["Cleaned_keywords"] = df["keywords"].apply(lambda x: clean_genres_text(x) if pd.notna(x) else "")
-df["norm_title"] = df["title"].apply(normalize_for_search)
-df["genre_set"] = df["Cleaned_genres"].apply(lambda x: set(x.split()) if x.strip() else set())
+# df["genres"] = df["genres"].fillna("")
+# df["Cleaned_genres"] = df["genres"].apply(clean_genres_text)
+# df["keywords"] = df["keywords"].fillna("")
+# df["Cleaned_keywords"] = df["keywords"].apply(lambda x: clean_genres_text(x) if pd.notna(x) else "")
+
+# Prepare Metadata for recommendation logic
+if "genres" in df.columns:
+    df["genres"] = df["genres"].fillna("")
+    df["Cleaned_genres"] = df["genres"].apply(clean_genres_text)
+else:
+    df["Cleaned_genres"] = ""
+
+# Prepare cleaned keywords - with explicit NaN handling
+if "keywords" in df.columns:
+    df["keywords"] = df["keywords"].fillna("")
+    # Safe cleaning that handles NaN values properly
+    df["Cleaned_keywords"] = df["keywords"].apply(lambda x: clean_genres_text(x) if pd.notna(x) else "")
+else:
+    df["Cleaned_keywords"] = ""
+
+# Build genre_set as actual Python sets (not string representations)
+# Always regenerate to ensure consistency
+df["genre_set"] = df["Cleaned_genres"].apply(
+    lambda x: set(x.split()) if isinstance(x, str) and x.strip() else set()
+)
 
 def create_stage2_text(row):
     overview = str(row.get("overview", "")) if pd.notna(row.get("overview")) else ""
-    genres = str(row.get("Cleaned_genres", ""))
-    keywords = str(row.get("Cleaned_keywords", ""))
-    return ((overview + " ") * 1 + (genres + " ") * 2 + (keywords + " ") * 2).strip()
+    genres = str(row.get("Cleaned_genres", "")) if pd.notna(row.get("Cleaned_genres")) else ""
+    keywords = str(row.get("Cleaned_keywords", "")) if pd.notna(row.get("Cleaned_keywords")) else ""
+
+    # Weighted combination: overview (1x) + genres (2x) + keywords (2x)
+    stage2_text = (overview + " ") * 1 + (genres + " ") * 2 + (keywords + " ") * 2
+    return stage2_text.strip()
 
 df["stage2_text"] = df.apply(create_stage2_text, axis=1)
+
+# Prepare norm_title for the search function
+df["norm_title"] = df["title"].apply(normalize_for_search)
 
 # Global Vectorizer for Reranking
 stage2_vectorizer = TfidfVectorizer(max_features=2000)
 stage2_matrix = stage2_vectorizer.fit_transform(df["stage2_text"])
 
+def rerank_by_overlap(top_movies, top_series, keyword_weight=0.6, genre_weight=0.4):
+    """
+    Re-rank movies and series by a balanced combination of common keywords and genres.
+
+    Items should be tuples of (idx, score, G_overlap, K_overlap)
+    Returns re-ranked movies and series sorted by a weighted score:
+    - Combined Score = (K_overlap * keyword_weight) + (G_overlap * genre_weight)
+
+    Parameters:
+    - keyword_weight: Weight for keywords (default 0.6) - 60% importance
+    - genre_weight: Weight for genres (default 0.4) - 40% importance
+    """
+    def rerank_list(items):
+        # Compute weighted score for each item
+        scored_items = [
+            (idx, score, G_overlap, K_overlap, K_overlap * keyword_weight + G_overlap * genre_weight)
+            for idx, score, G_overlap, K_overlap in items
+        ]
+        # Sort by combined weighted score (descending)
+        return sorted(scored_items, key=lambda x: x[4], reverse=True)
+
+    reranked_movies = rerank_list(top_movies)
+    reranked_series = rerank_list(top_series)
+
+    # Remove the score column before returning
+    return (
+        [(idx, score, G_overlap, K_overlap) for idx, score, G_overlap, K_overlap, _ in reranked_movies],
+        [(idx, score, G_overlap, K_overlap) for idx, score, G_overlap, K_overlap, _ in reranked_series]
+    )
+
 # Masks for Movie vs Series separation
 if "is_movie" in df.columns:
-    movie_indices = np.where(df["is_movie"] == 1)[0].tolist()
-    series_indices = np.where(df["is_movie"] == 0)[0].tolist()
+    movie_mask = (df["is_movie"] == 1).values
+    series_mask = (df["is_movie"] == 0).values
+    movie_indices = np.where(movie_mask)[0].tolist()
+    series_indices = np.where(series_mask)[0].tolist()
     movie_matrix = tf_idf_matrix[movie_indices]
     series_matrix = tf_idf_matrix[series_indices]
 else:
+    # Fallback if is_movie column is missing
     movie_indices = df.index.tolist()
     series_indices = []
     movie_matrix = tf_idf_matrix
     series_matrix = None
 
+def normalize(text):
+    # reomving & and replacing it with and
+    text = text.replace('&', 'and')
+    return re.sub(r'[^a-z0-9]', '', text.lower())
+
+def possible_titles(movie_name, data=df):
+    norm_name = normalize(movie_name)
+    scores = []
+
+    titles = data["title"].tolist()
+    norm_titles = data["norm_title"].tolist()
+    release_dates = data["release_date"].tolist()
+    images = data["poster_path"].tolist()
+    genres = data["genres"].tolist()
+    descriptions = data["overview"].tolist()
+    is_movie_flags = data["is_movie"].tolist()
+
+    for idx, (title,norm_title, release_date, image, genre, description, is_movie) in enumerate(zip(titles, norm_titles, release_dates, images, genres, descriptions, is_movie_flags)):
+        # norm_title = normalize(title)
+        if not norm_title:
+            continue
+
+        score = similarity_score(norm_name, norm_title)
+
+        # if score < len(norm_name) * 0.4:
+        #     continue
+
+        scores.append((idx, title, score, release_date, image, genre, description, is_movie))
+    scores.sort(key=lambda x: (x[2], -len(x[1])), reverse=True)
+
+    top_matches = scores[:10]
+
+    # return ONLY list of dicts
+    return [
+        {"index": idx, "title": t, "score": s, "release_date": d, "poster_url": image, "genre": genre, "description": description, "is_movie": is_movie}
+        for (idx, t, s, d, image, genre, description, is_movie) in top_matches
+    ]
 # --- RECOMMENDATION CORE ---
 
 def similarity_score(a, b):
@@ -88,65 +205,195 @@ def similarity_score(a, b):
             if sub in b: score += len(sub)
     return score / (len(b) + 1)
 
-def recommendation_function(idx, top_n=225, penalty_no_overlap=0.1):
-    main_genres = df.loc[idx, "genre_set"]
-    
+def recommendation_function(data=df, top_n=70, title=None, movie_idx=None, penalty_no_overlap=0.1):
+    # Accept either a single integer index or an index-like (list/array) selection
+    if movie_idx is None:
+        print("ERROR: Movie not found.")
+        return None
+    # normalize movie_idx to a single integer index
+    if isinstance(movie_idx, (list, tuple)) or hasattr(movie_idx, 'tolist') and not isinstance(movie_idx, (int,)):
+        try:
+            if len(movie_idx) == 0:
+                print("ERROR: Movie not found.")
+                return None
+            idx = int(movie_idx[0])
+        except Exception:
+            print("ERROR: Invalid movie_idx provided.")
+            return None
+    else:
+        idx = int(movie_idx)
+
+    main_genres = data.loc[idx, "genre_set"]
+
+    # --- Helper for F1 score ---
     def f1_score(overlap, candidate_count, main_count):
-        if candidate_count == 0 or main_count == 0 or overlap == 0: return 0
-        p, r = overlap/candidate_count, overlap/main_count
-        return 2 * p * r / (p + r)
+        if candidate_count == 0 or main_count == 0 or overlap == 0:
+            return 0
+        precision = overlap / candidate_count
+        recall = overlap / main_count
+        return 2 * precision * recall / (precision + recall)
 
-    # Score Movies
-    sim_movie = linear_kernel(tf_idf_matrix[idx:idx+1], movie_matrix).flatten()
+    # -------- MOVIES --------
+    sim_movie = linear_kernel(
+        tf_idf_matrix[idx:idx+1],
+        movie_matrix
+    ).flatten()
+
     movie_scores = []
+
     for i, score in zip(movie_indices, sim_movie):
-        if i == idx: continue
-        cand_genres = df.loc[i, "genre_set"]
-        overlap = len(main_genres & cand_genres)
-        f1 = f1_score(overlap, len(cand_genres), len(main_genres))
-        final = (score - penalty_no_overlap) if overlap == 0 else (score + f1 * 0.2)
-        movie_scores.append((i, final, overlap, f1))
-    
-    # Score Series
+        if i == idx:
+            continue
+
+        candidate_genres = data.loc[i, "genre_set"]
+        genre_overlap = len(main_genres & candidate_genres)
+        candidate_count = len(candidate_genres)
+        main_count = len(main_genres)
+
+        # F1-based genre score
+        genre_f1 = f1_score(genre_overlap, candidate_count, main_count)
+
+        if candidate_count == 1 and "Comedy" in candidate_genres:
+            genre_overlap = 0
+            genre_f1 = 0
+
+        # Penalize if no common genres
+        if genre_overlap == 0:
+            final_score = score - penalty_no_overlap
+        else:
+            final_score = score + genre_f1 * 0.2  # tune weight
+
+        movie_scores.append((i, final_score, genre_overlap, genre_f1))
+
+    movie_scores = sorted(movie_scores, key=lambda x: x[1], reverse=True)[:top_n]
+    movie_idxs = [i[0] for i in movie_scores]
+
+    # -------- SERIES --------
+    sim_series = linear_kernel(
+        tf_idf_matrix[idx:idx+1],
+        series_matrix
+    ).flatten()
+
     series_scores = []
-    if series_matrix is not None:
-        sim_series = linear_kernel(tf_idf_matrix[idx:idx+1], series_matrix).flatten()
-        for i, score in zip(series_indices, sim_series):
-            if i == idx: continue
-            cand_genres = df.loc[i, "genre_set"]
-            overlap = len(main_genres & cand_genres)
-            f1 = f1_score(overlap, len(cand_genres), len(main_genres))
-            final = (score - penalty_no_overlap) if overlap == 0 else (score + f1 * 0.15)
-            series_scores.append((i, final, overlap, f1))
 
-    return idx, sorted(movie_scores, key=lambda x: x[1], reverse=True)[:top_n], \
-                sorted(series_scores, key=lambda x: x[1], reverse=True)[:top_n]
+    for i, score in zip(series_indices, sim_series):
+        if i == idx:
+            continue
 
-def stage2_rerank(main_idx, movie_candidates, series_candidates):
-    def rerank_list(candidates):
-        if not candidates: return []
-        c_idxs = [x[0] for x in candidates]
-        sims = linear_kernel(stage2_matrix[main_idx:main_idx+1], stage2_matrix[c_idxs]).flatten()
-        main_keywords = set(str(df.loc[main_idx, "Cleaned_keywords"]).split())
-        
-        results = []
-        for (idx, _, _, _), sim in zip(candidates, sims):
-            c_keywords = set(str(df.loc[idx, "Cleaned_keywords"]).split())
-            g_overlap = len(df.loc[main_idx, "genre_set"] & df.loc[idx, "genre_set"])
-            k_overlap = len(main_keywords & c_keywords)
-            # Final logic weight from your new code
-            score = sim + (g_overlap * 0.2) + (k_overlap * 0.1)
-            results.append((idx, score, g_overlap, k_overlap))
-        return sorted(results, key=lambda x: x[1], reverse=True)
+        candidate_genres = data.loc[i, "genre_set"]
+        genre_overlap = len(main_genres & candidate_genres)
+        candidate_count = len(candidate_genres)
+        main_count = len(main_genres)
 
-    return rerank_list(movie_candidates), rerank_list(series_candidates)
+        genre_f1 = f1_score(genre_overlap, candidate_count, main_count)
 
-def build_movie_dict(idx):
+        if candidate_count == 1 and "Comedy" in candidate_genres:
+            genre_overlap = 0
+            genre_f1 = 0
+
+        if genre_overlap == 0:
+            final_score = score - penalty_no_overlap
+        else:
+            final_score = score + genre_f1 * 0.15  # tune weight
+
+        series_scores.append((i, final_score, genre_overlap, genre_f1))
+
+    series_scores = sorted(series_scores, key=lambda x: x[1], reverse=True)[:top_n]
+    series_idxs = [i[0] for i in series_scores]
+
+    return idx, movie_idxs, series_idxs
+
+def stage2_rerank(main_idx, movie_candidates, series_candidates, data=df):
+
+    main_genres = data.loc[main_idx, "genre_set"]
+    main_keywords = set(data.loc[main_idx, "Cleaned_keywords"].split())
+
+    # --- Helper to compute precision & recall score ---
+    def f1_score(overlap, candidate_count, main_count):
+        if candidate_count == 0 or main_count == 0:
+            return 0
+        precision = overlap / candidate_count
+        recall = overlap / main_count
+        if precision + recall == 0:
+            return 0
+        return 2 * precision * recall / (precision + recall)
+
+    # -------- MOVIES --------
+    movie_sim = linear_kernel(
+        stage2_matrix[main_idx:main_idx+1],
+        stage2_matrix[movie_candidates]
+    ).flatten()
+
+    movie_reranked = []
+
+    for i, sim in zip(movie_candidates, movie_sim):
+
+        candidate_genres = data.loc[i, "genre_set"]
+        candidate_keywords = set(data.loc[i, "Cleaned_keywords"].split())
+
+        # --- Genre F1 ---
+        genre_overlap = len(main_genres & candidate_genres)
+        genre_f1 = f1_score(genre_overlap, len(candidate_genres), len(main_genres))
+
+        # --- Keyword F1 ---
+        keywords_overlap = len(main_keywords & candidate_keywords)
+        keyword_f1 = f1_score(keywords_overlap, len(candidate_keywords), len(main_keywords))
+
+        # --- Final score ---
+        final_score = (
+            sim
+            + genre_f1 * 0.2    # tune weight
+            + keyword_f1 * 0.1  # tune weight
+        )
+
+        movie_reranked.append(
+            (i, final_score, genre_overlap, keywords_overlap)
+        )
+
+    movie_reranked = sorted(movie_reranked, key=lambda x: x[1], reverse=True)
+
+    # -------- SERIES --------
+    series_sim = linear_kernel(
+        stage2_matrix[main_idx:main_idx+1],
+        stage2_matrix[series_candidates]
+    ).flatten()
+
+    series_reranked = []
+
+    for i, sim in zip(series_candidates, series_sim):
+
+        candidate_genres = data.loc[i, "genre_set"]
+        candidate_keywords = set(data.loc[i, "Cleaned_keywords"].split())
+
+        # --- Genre F1 ---
+        genre_overlap = len(main_genres & candidate_genres)
+        genre_f1 = f1_score(genre_overlap, len(candidate_genres), len(main_genres))
+
+        # --- Keyword F1 ---
+        keywords_overlap = len(main_keywords & candidate_keywords)
+        keyword_f1 = f1_score(keywords_overlap, len(candidate_keywords), len(main_keywords))
+
+        # --- Final score ---
+        final_score = (
+            sim
+            + genre_f1 * 0.2   # tune weight
+            + keyword_f1 * 0.1 # tune weight
+        )
+
+        series_reranked.append(
+            (i, final_score, genre_overlap, keywords_overlap)
+        )
+
+    series_reranked = sorted(series_reranked, key=lambda x: x[1], reverse=True)
+
+    return movie_reranked, series_reranked
+
+def build_movie_dict(idx,df):
     """Restores the massive dictionary from your new code to ensure frontend compatibility."""
     row = df.iloc[idx]
     # Handle the 'is_movie' logic carefully
     is_movie_val = int(row.get("is_movie", 1)) if pd.notna(row.get("is_movie")) else 1
-    
+
     data = {
         "index": int(idx),
         "id": row.get("id") if pd.notna(row.get("id")) else 0,
@@ -175,7 +422,7 @@ def build_movie_dict(idx):
         "keywords": row.get("keywords") if pd.notna(row.get("keywords")) else "",
         "is_movie": is_movie_val
     }
-    
+
     # Add Series-specific fields if they exist
     extra_fields = ["number_of_seasons", "number_of_episodes", "last_air_date", "in_production", "type", "created_by", "languages", "networks", "origin_country"]
     for field in extra_fields:
@@ -189,7 +436,7 @@ def build_movie_dict(idx):
             data[key] = int(data[key])
         elif isinstance(data[key], (np.floating, np.float64)):
             data[key] = float(data[key])
-            
+
     return data
 
 # --- ROUTES ---
@@ -201,53 +448,56 @@ def home():
 @app.get("/search")
 def search():
     q = request.args.get("q", "")
-    norm_name = normalize_for_search(q)
-    results = []
-    # Vectorized search loop
-    for idx, row in df.iterrows():
-        if not row["norm_title"]: continue
-        score = similarity_score(norm_name, row["norm_title"])
-        if score > 0.1: # Threshold to keep it fast
-            results.append({
-                "index": idx, "title": row["title"], "score": score,
-                "release_date": row["release_date"], "poster_url": row["poster_path"],
-                "genre": row["genres"], "description": row["overview"],
-                "is_movie": row.get("is_movie", 1)
-            })
-    results.sort(key=lambda x: (x["score"], -len(x["title"])), reverse=True)
-    return jsonify(results[:10])
+    results = possible_titles(q, df)
+    return jsonify(results)
+
 
 @app.get("/recommend")
 def recommend():
     title = request.args.get("title", None)
-    idx_req = request.args.get("idx", None)
-    
+    idx = request.args.get("idx", None)
+
+    if idx is not None:
+        try:
+            idx = int(idx)
+        except ValueError:
+            return jsonify({"error": "Invalid idx parameter"}), 400
+
+    if not title and idx is None:
+        return jsonify({"error": "Either title or idx must be provided"}), 400
+
     try:
-        if idx_req is not None:
-            main_idx = int(idx_req)
-        elif title:
-            matches = df[df["title"].str.lower() == title.lower()]
-            if matches.empty: return jsonify({"error": "Not found"}), 404
-            main_idx = matches.index[0]
-        else:
-            return jsonify({"error": "Provide title or idx"}), 400
+        # Step 1: Initial Recommendation (Notebook logic)
+        result = recommendation_function(data=df, top_n=225, title=title, movie_idx=idx)
 
-        _, m_cand, s_cand = recommendation_function(main_idx)
-        m_reranked, s_reranked = stage2_rerank(main_idx, m_cand, s_cand)
+        if result is None:
+            return jsonify({"error": "Movie/Series not found in database"}), 404
 
+        main_idx, movie_candidates, series_candidates = result
+
+        # Step 2: Rerank using combined scores (genre F1 + keyword F1)
+        movie_reranked, series_reranked = stage2_rerank(main_idx, movie_candidates, series_candidates, df)
+
+        # Step 3: Final rerank by overlap (keywords have higher weight)
+        movie_reranked, series_reranked = rerank_by_overlap(movie_reranked, series_reranked)
+
+        # Step 4: Format top 20 for frontend
         return jsonify({
-            "movies": [build_movie_dict(i) for i, _, _, _ in m_reranked[:20]],
-            "series": [build_movie_dict(i) for i, _, _, _ in s_reranked[:20]]
+            "movies": [build_movie_dict(idx, df) for idx, _, _, _ in movie_reranked[:20]],
+            "series": [build_movie_dict(idx, df) for idx, _, _, _ in series_reranked[:20]]
         })
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.get("/movie/<int:index>")
 def get_movie_by_index(index):
     if index < 0 or index >= len(df):
         return jsonify({"error": "Index out of range"}), 404
     try:
-        return jsonify(build_movie_dict(index))
+        return jsonify(build_movie_dict(index,df))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
