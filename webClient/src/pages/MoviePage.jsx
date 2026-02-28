@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import MovieCard from '../components/MovieCard.jsx'
 import '../components/MovieCard.css'
 import './MoviePage.css'
 
@@ -12,24 +13,32 @@ function MetaRow({ label, value }) {
   )
 }
 
-export default function MoviePage({  }) {
-    useEffect(()=>{
-        // scroll to top when page loads
-        window.scrollTo(0, 0);
-    })
+export default function MoviePage({ }) {
+  useEffect(() => {
+    // scroll to top when page loads
+    window.scrollTo(0, 0);
+  })
   const location = useLocation()
   const navigate = useNavigate()
   const [movie, setMovie] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-//   console.log('MoviePage movie:', location.state.movie)
+  const [recommendedMovies, setRecommendedMovies] = useState([])
+  const [recommendedSeries, setRecommendedSeries] = useState([])
+  const [recsLoading, setRecsLoading] = useState(false)
 
-//   If no movie object provided, try to fetch using title from query param or state 
+  // Helper function to format poster URLs
+  const formatPosterUrl = (url) => {
+    if (!url) return ''
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url
+    }
+    return `https://image.tmdb.org/t/p/w500${url}`
+  }
   useEffect(() => {
     const movieId = location.state?.movie?.id || location.pathname.split('/movie/')[1]
-    // console.log('MoviePage movieId from params:', movieId);
 
-    if (!movie && movieId) {
+    if (movieId) {
       setLoading(true)
       fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/movie/${movieId}`)
         .then((r) => r.json())
@@ -46,7 +55,46 @@ export default function MoviePage({  }) {
         .catch((e) => setError(String(e)))
         .finally(() => setLoading(false))
     }
-  }, [location, movie])
+  }, [location.pathname, location.state])
+
+  // Fetch recommendations when movie changes
+  useEffect(() => {
+    if (movie && movie.index !== undefined) {
+      setRecsLoading(true)
+      fetch(`${import.meta.env.VITE_BACKEND_URL || ''}/recommend?idx=${movie.index}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.movies) {
+            setRecommendedMovies(data.movies.map((m) => ({
+              id: m.index,
+              title: m.title,
+              year: m.release_date ? m.release_date.slice(0, 4) : 'N/A',
+              genre: m.genres,
+              description: m.overview,
+              image: formatPosterUrl(m.poster_url),
+              poster_url: formatPosterUrl(m.poster_url),
+              rating: m.rating,
+              is_movie: m.is_movie
+            })))
+          }
+          if (data.series) {
+            setRecommendedSeries(data.series.map((s) => ({
+              id: s.index,
+              title: s.title,
+              year: s.release_date ? s.release_date.slice(0, 4) : 'N/A',
+              genre: s.genres,
+              description: s.overview,
+              image: formatPosterUrl(s.poster_url),
+              poster_url: formatPosterUrl(s.poster_url),
+              rating: s.rating,
+              is_movie: s.is_movie
+            })))
+          }
+        })
+        .catch((e) => console.error('Error fetching recommendations:', e))
+        .finally(() => setRecsLoading(false))
+    }
+  }, [movie])
 
   if (loading) return <div className="movie-page"><div className="loader">Loading…</div></div>
   if (error) return <div className="movie-page"><div className="error">{error}</div></div>
@@ -109,6 +157,32 @@ export default function MoviePage({  }) {
             </div>
           </div>
         </div>
+
+        {/* Recommendations Section */}
+        {(recommendedMovies.length > 0 || recommendedSeries.length > 0) && (
+          <div className="recommendations-section" style={{ marginTop: '3rem' }}>
+            {recommendedMovies.length > 0 && (
+              <div className="recommendations-movies">
+                <h2 className="section-title">🎬 Similar Movies</h2>
+                <div className="recommendations-grid">
+                  {recommendedMovies.slice(0, 6).map((m) => (
+                    <MovieCard key={m.id} movie={m} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {recommendedSeries.length > 0 && (
+              <div className="recommendations-series">
+                <h2 className="section-title">📺 Similar Series</h2>
+                <div className="recommendations-grid">
+                  {recommendedSeries.slice(0, 6).map((s) => (
+                    <MovieCard key={s.id} movie={s} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

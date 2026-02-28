@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { selectContentFilter } from '../store/moviesSlice'
 import MovieCard from '../components/MovieCard'
 import ContentFilter from '../components/ContentFilter'
-import csvData from '../assets/processed_movies.csv?raw'
+import csvData from '../assets/front_data_set.csv?raw'
 import './Genres.css'
 import { filterByContentType } from '../utils/contentFilterUtils'
 

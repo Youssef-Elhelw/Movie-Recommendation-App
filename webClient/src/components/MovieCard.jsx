@@ -40,7 +40,7 @@ export default function MovieCard({ movie, featured = false, compact = false , s
   }
 
   return (
-    <div className="movie-card" onClick={setMovieData(movie.id)}>
+    <div className="movie-card" onClick={() => { setMovieData?.(movie.id); navigate(`/movie/${movie.id || movie.index}`) }}>
       <div className="movie-poster" style={{ backgroundImage: `url(${movie.image || movie.poster || movie.poster_url})` }}>
         <img src={movie.image || movie.poster || movie.poster_url} alt={movie.title} />
       </div>
@@ -49,7 +49,7 @@ export default function MovieCard({ movie, featured = false, compact = false , s
         <h3 className="movie-title">{movie.title}</h3>
         <p className="movie-description">{movie?.description || movie?.overview}</p>
         <div style={{ marginTop: '1rem' }}>
-          <button className="btn-view-details" onClick={() => navigate(`/movie/${movie.id || movie.index}`)}>View Details</button>
+          <button className="btn-view-details" onClick={(e) => { e.stopPropagation(); navigate(`/movie/${movie.id || movie.index}`) }}>View Details</button>
         </div>
       </div>
     </div>

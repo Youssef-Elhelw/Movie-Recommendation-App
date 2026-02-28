@@ -19,6 +19,15 @@
     const lastAppliedIdRef = useRef(0)
     const firstResponseHandledRef = useRef(false)
 
+    // Helper function to format poster URLs
+    const formatPosterUrl = (url) => {
+      if (!url) return ''
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url
+      }
+      return `https://image.tmdb.org/t/p/w500${url}`
+    }
+
     const fetchSearchResults = async (query) => {
       if (!query.trim()) {
         setSearchSuggestions([])
@@ -92,7 +101,7 @@
     const handleSelectSuggestion = (suggestion) => {
       setFetchFlag(false)
       setSearchQuery(suggestion.title)
-      handleGetRecommendation(suggestion.title)
+      handleGetRecommendation(suggestion.index)
       setShowSuggestions(false)
       setSelectedIndex(-1)
       setHoveredIndex(-1)
@@ -115,14 +124,19 @@
       }, 500)
     }
 
-    const handleGetRecommendation = async (searchQuery_p) => {
-      if (searchQuery_p.trim()) {
-        fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?title=${encodeURIComponent(searchQuery_p)}`)
+    const handleGetRecommendation = async (movieIdx) => {
+      if (movieIdx !== undefined && movieIdx !== null) {
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/recommend?idx=${movieIdx}`)
           .then(response => response.json())
           .then(data => {
             // Data now has structure: { movies: [...], series: [...] }
+            // Format poster URLs for all movies and series
+            const formattedData = {
+              movies: data.movies,
+              series: data.series
+            }
             if (onGetSuggestion) {
-              onGetSuggestion(data)
+              onGetSuggestion(formattedData)
             }
           })
           .catch(error => {
@@ -159,7 +173,8 @@
     const handleKeyDown = (e) => {
       if (!showSuggestions || searchSuggestions.length === 0) {
         if (e.key === 'Enter') {
-          handleGetRecommendation(searchQuery)
+          // No suggestions shown, can't proceed
+          return
         }
         return
       }
@@ -181,8 +196,6 @@
           e.preventDefault()
           if (selectedIndex >= 0) {
             handleSelectSuggestion(searchSuggestions[selectedIndex])
-          } else {
-            handleGetRecommendation(searchQuery)
           }
           break
         case 'Escape':
@@ -228,7 +241,11 @@
               </div>
               <button
                 className="btn-get-recommendation"
-                onClick={() => { handleGetRecommendation(searchQuery) }}
+                onClick={() => {
+                  if (searchSuggestions.length > 0) {
+                    handleSelectSuggestion(searchSuggestions[0])
+                  }
+                }}
               >
                 Get Recommendation
               </button>
