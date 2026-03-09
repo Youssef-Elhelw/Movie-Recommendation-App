@@ -40,7 +40,7 @@ export default function MovieCard({ movie, featured = false, compact = false , s
   }
 
   return (
-    <div className="movie-card" onClick={() => { setMovieData?.(movie.id); navigate(`/movie/${movie.id || movie.index}`) }}>
+    <div className="movie-card">
       <div className="movie-poster" style={{ backgroundImage: `url(${movie.image || movie.poster || movie.poster_url})` }}>
         <img src={movie.image || movie.poster || movie.poster_url} alt={movie.title} />
       </div>
