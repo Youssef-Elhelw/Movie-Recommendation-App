@@ -477,9 +477,30 @@ def recommend():
 
         # Step 2: Rerank using combined scores (genre F1 + keyword F1)
         movie_reranked, series_reranked = stage2_rerank(main_idx, movie_candidates, series_candidates, df)
+        reranked = sorted(
+            movie_reranked + series_reranked,
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        top_movies = []
+        top_series = []
+
+        # Keep overlaps!
+        for idx, score, G_overlap, K_overlap in reranked:
+            is_movie = df.loc[idx, 'is_movie']
+
+            if is_movie and len(top_movies) < 20:
+                top_movies.append((idx, score, G_overlap, K_overlap))
+
+            elif not is_movie and len(top_series) < 20:
+                top_series.append((idx, score, G_overlap, K_overlap))
+
+            if len(top_movies) == 20 and len(top_series) == 20:
+                break
 
         # Step 3: Final rerank by overlap (keywords have higher weight)
-        movie_reranked, series_reranked = rerank_by_overlap(movie_reranked, series_reranked)
+        movie_reranked, series_reranked = rerank_by_overlap(top_movies, top_series)
 
         # Step 4: Format top 20 for frontend
         return jsonify({
